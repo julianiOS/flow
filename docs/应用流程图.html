@@ -1,0 +1,3378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flutter IM 应用流程图</title>
+    <script type="module">
+      (async () => {
+        async function loadScript(src) {
+          return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+          });
+        }
+        async function loadMermaid() {
+          try {
+            const mod = await import('vendor/mermaid.esm.min.mjs');
+            const mer = mod.default || mod.mermaid || mod;
+            if (mer) return mer;
+          } catch (_) {}
+          try {
+            await loadScript('vendor/mermaid.min.js');
+            if (window.mermaid) return window.mermaid;
+          } catch (_) {}
+          const urls = [
+            'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs',
+            'https://unpkg.com/mermaid@10/dist/mermaid.esm.min.mjs',
+            'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.esm.min.mjs'
+          ];
+          for (const url of urls) {
+            try {
+              const mod = await import(url);
+              const mer = mod.default || mod.mermaid || mod;
+              if (mer) return mer;
+            } catch (_) {}
+          }
+          await loadScript('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js');
+          return window.mermaid;
+        }
+        const mer = await loadMermaid();
+        if (mer) window.mermaid = mer;
+        document.dispatchEvent(new Event('mermaid-ready'));
+      })();
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-purple: #a371f7;
+            --accent-orange: #d29922;
+            --accent-pink: #f778ba;
+            --accent-cyan: #39c5cf;
+            --border-color: #30363d;
+            --shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+        
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-tab {
+            padding: 12px 24px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .nav-tab:hover {
+            background: var(--bg-primary);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+        
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 15px rgba(88, 166, 255, 0.3);
+        }
+        
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .icon-blue { background: linear-gradient(135deg, #1a3a5c, #2d5a87); }
+        .icon-green { background: linear-gradient(135deg, #1a4a3a, #2d7a5a); }
+        .icon-purple { background: linear-gradient(135deg, #3a2a5c, #5a4a87); }
+        .icon-orange { background: linear-gradient(135deg, #5c4a1a, #876a2d); }
+        .icon-pink { background: linear-gradient(135deg, #5c2a4a, #874a6a); }
+        .icon-cyan { background: linear-gradient(135deg, #1a4a5c, #2d7a8a); }
+        
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .card h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--accent-blue);
+            margin: 24px 0 16px;
+        }
+        
+        .mermaid {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        .mermaid-large-wrapper {
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .zoom-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+            background: var(--bg-secondary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .zoom-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .zoom-btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+        
+        .zoom-level {
+            color: var(--text-secondary);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            min-width: 45px;
+            justify-content: center;
+        }
+        
+        .mermaid-large {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 30px;
+            overflow: auto;
+            min-height: 500px;
+            max-height: 800px;
+            transform-origin: top left;
+            transition: transform 0.2s ease;
+        }
+        
+        .mermaid-large svg {
+            min-width: 1000px;
+            display: block;
+        }
+        
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+        
+        .arch-item {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .arch-item:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(88, 166, 255, 0.15);
+        }
+        
+        .arch-item h4 {
+            color: var(--accent-cyan);
+            font-size: 1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .arch-item p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .file-table th,
+        .file-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .file-table th {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .file-table td {
+            font-size: 0.95rem;
+        }
+        
+        .file-table tr:hover td {
+            background: var(--bg-tertiary);
+        }
+        
+        .file-path {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-green);
+            font-size: 0.85rem;
+        }
+        
+        .flow-description {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-blue);
+        }
+        
+        .flow-description h4 {
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+        }
+        
+        .flow-description ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .flow-description li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: var(--text-secondary);
+        }
+        
+        .flow-description li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-purple);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-tabs {
+                position: static;
+            }
+            
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Flutter IM 应用流程图</h1>
+            <p>完整的应用架构与数据流转可视化文档，从启动到会话列表、聊天页的全流程解析</p>
+        </header>
+        
+        <nav class="nav-tabs">
+            <div class="nav-tab active" data-section="overview" onclick="showSection(event, 'overview')">📱 架构概览</div>
+            <div class="nav-tab" data-section="startup" onclick="showSection(event, 'startup')">🚀 启动流程</div>
+            <div class="nav-tab" data-section="upgrade" onclick="showSection(event, 'upgrade')">⬆️ 版本升级</div>
+            <div class="nav-tab" data-section="conversation" onclick="showSection(event, 'conversation')">📋 会话列表</div>
+            <div class="nav-tab" data-section="chat" onclick="showSection(event, 'chat')">💬 聊天页</div>
+            <div class="nav-tab" data-section="message" onclick="showSection(event, 'message')">📤 消息收发</div>
+            <div class="nav-tab" data-section="contact" onclick="showSection(event, 'contact')">👥 联系人</div>
+            <div class="nav-tab" data-section="mine" onclick="showSection(event, 'mine')">👤 我的</div>
+            <div class="nav-tab" data-section="connection" onclick="showSection(event, 'connection')">🔌 连接管理</div>
+            <div class="nav-tab" data-section="files" onclick="showSection(event, 'files')">📁 文件索引</div>
+        </nav>
+        
+        <!-- 架构概览 -->
+        <section id="overview" class="section active">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-blue">📱</div>
+                    <h2>应用整体架构</h2>
+                </div>
+                
+                <div class="mermaid">
+graph TB
+    subgraph UI["表现层UI"]
+        MainPage["MainPage主页路由"]
+        MainTabPage["MainTabPage底部Tab页"]
+        ConvPage["HomeConversationPage会话"]
+        ContactPageUI["HomeContactPage联系人"]
+        MyPageUI["MyPage我的"]
+        ChatPageUI["ChatPage聊天页"]
+    end
+    
+    subgraph Logic["业务逻辑层"]
+        ConvLogic["ConversationLogic"]
+        ContactLogicL["ContactLogic"]
+        MyInfoLogicL["MyInfoLogic"]
+        ChatLogicL["ChatLogic"]
+        Controllers["GetX Controllers"]
+    end
+    
+    subgraph Data["数据层"]
+        WKIM["WKIM SDK"]
+        HTTP["HTTP API"]
+        SQLite["本地数据库SQLite"]
+    end
+    
+    subgraph Cache["缓存层"]
+        SP["SharedPreferences"]
+        CacheHelper["CacheHelper"]
+    end
+    
+    subgraph Comm["通信层"]
+        EventBus["EventBus"]
+        Bloc["NaviCountBloc"]
+    end
+    
+    MainPage --> MainTabPage
+    MainTabPage --> ConvPage
+    MainTabPage --> ContactPageUI
+    MainTabPage --> MyPageUI
+    ConvPage --> ChatPageUI
+    
+    ConvPage --> ConvLogic
+    ContactPageUI --> ContactLogicL
+    MyPageUI --> MyInfoLogicL
+    ChatPageUI --> ChatLogicL
+    
+    ConvLogic --> WKIM
+    ContactLogicL --> WKIM
+    ChatLogicL --> WKIM
+    ConvLogic --> HTTP
+    ChatLogicL --> HTTP
+    MyInfoLogicL --> HTTP
+    
+    WKIM --> SQLite
+    HTTP --> CacheHelper
+    CacheHelper --> SP
+    
+    ConvLogic --> EventBus
+    ChatLogicL --> EventBus
+    ContactLogicL --> EventBus
+    EventBus --> Bloc
+                </div>
+                
+                <div class="architecture-grid">
+                    <div class="arch-item">
+                        <h4>🎨 表现层 (UI)</h4>
+                        <p>MainPage → MainTabPage → HomeConversationPage / HomeContactPage / MyPage / ChatPage，负责界面展示和用户交互</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>⚙️ 业务逻辑层</h4>
+                        <p>GetX Controllers (HomeConversationLogic, ContactLogic, MyInfoLogic, ChatLogic)，处理业务逻辑和状态管理</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>💾 数据层</h4>
+                        <p>WKIM SDK (悟空IM) + HTTP API，负责数据获取和持久化</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>🗄️ 缓存层</h4>
+                        <p>Cache (SharedPreferences) + CacheHelper，本地数据缓存</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>📡 通信层</h4>
+                        <p>EventBus + Bloc (NaviCountBloc)，组件间通信和状态同步</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-purple">🔄</div>
+                    <h2>核心数据流</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart LR
+    Server["服务器IM+API"]
+    SDK["WKIM SDK长连接"]
+    DB["本地数据库SQLite"]
+    
+    subgraph Listeners["监听器层"]
+        L1["OnNewMsgListener"]
+        L2["OnRefreshMsgListListener"]
+        L3["OnConnectionStatusListener"]
+    end
+    
+    subgraph ControllersLayer["Controller层"]
+        C1["ChatLogic"]
+        C2["ConversationLogic"]
+        C3["HomeConversationLogic"]
+    end
+    
+    subgraph Views["UI层"]
+        V1["ChatPage"]
+        V2["ConversationListPage"]
+        V3["HomeConversationPage"]
+    end
+    
+    Server <--> SDK
+    SDK <--> DB
+    SDK --> Listeners
+    
+    L1 --> C1
+    L2 --> C2
+    L3 --> C3
+    
+    C1 --> V1
+    C2 --> V2
+    C3 --> V3
+                </div>
+            </div>
+        </section>
+        
+        <!-- 启动流程 -->
+        <section id="startup" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-green">🚀</div>
+                    <h2>应用启动流程 - main()</h2>
+                </div>
+                
+                <div class="mermaid">
+%%{init: {'flowchart': {'nodeSpacing': 25, 'rankSpacing': 35, 'curve': 'basis'}}}%%
+flowchart TD
+    Start(["main函数入口"]) --> A["1. WidgetsFlutterBinding.ensureInitialized"] --> B["2. FlutterNativeSplash.preserve"] --> C["3. GlobalErrorHandler.init"] --> D["4. await initApp()"]
+    
+    subgraph InitApp["initApp详细流程"]
+        D1["await Cache.instance.init()"]
+        D2["await CommonHelper.init()"]
+        D3["await FileUtils.init()"]
+        D4["await NotificationUtils.init()"]
+        D5["BackgroundTask.init()"]
+        D6["NetworkManager.startListening()"]
+        D7["翻译/分享/内存管理等初始化, await原生层日志通道初始化"]
+        
+        D1 --> D2 --> D3 --> D4 --> D5 --> D6 --> D7
+    end
+    
+    D --> D1
+    
+    subgraph CommonInit["CommonHelper.init详细"]
+        E1{"isLogin?"} -->|是| E2["await IMUtils.initIM()"]
+        E1 -->|否| E3["完成"]
+        E2 --> E3
+    end
+    
+    D2 -.-> E1
+    
+    subgraph IMInit["IMUtils.initIM详细"]
+        F1["WKIM.shared.setup"] --> F2["配置getAddr回调"] --> F3["connect()"] --> F4["registerMsgContent()"] --> F5["addListener()"]
+    end
+    
+    E2 -.-> F1
+    
+    D7 --> G["5. FlutterNativeSplash.remove"] --> H["6. runApp(App())"]
+    
+    subgraph PostRunApp["runApp后续流程"]
+        P1["setSystemUI() 同步"]
+        P2["await BackgroundTask.notifyFlutterReady()"]
+        P3["await BackgroundTask.setPrivacyMode()"]
+        
+        P1 --> P2 --> P3
+    end
+    
+    H --> P1
+    P3 --> EndNode(["启动完成"])
+                </div>
+                
+                <div class="flow-description">
+                    <h4>启动流程说明</h4>
+                    <ul>
+                        <li><span class="step-number">1</span><strong>基础初始化:</strong> WidgetsFlutterBinding 确保 Flutter 引擎初始化完成</li>
+                        <li><span class="step-number">2</span><strong>启动屏保持:</strong> FlutterNativeSplash.preserve 保持原生启动屏显示</li>
+                        <li><span class="step-number">3</span><strong>错误处理:</strong> GlobalErrorHandler 初始化全局错误捕获</li>
+                        <li><span class="step-number">4</span><strong>应用初始化:</strong> initApp 串行初始化各模块（Cache → CommonHelper → FileUtils → NotificationUtils 等）</li>
+                        <li><span class="step-number">5</span><strong>移除启动屏:</strong> 初始化完成后移除原生启动屏</li>
+                        <li><span class="step-number">6</span><strong>运行应用:</strong> runApp 启动 Flutter 应用</li>
+                        <li><span class="step-number">7</span><strong>系统UI设置:</strong> setSystemUI() 配置状态栏样式、导航栏颜色、屏幕方向（同步调用）</li>
+                        <li><span class="step-number">8</span><strong>通知原生层:</strong> await BackgroundTask.notifyFlutterReady() 通知原生代码Flutter引擎已准备好，处理冷启动时的推送通知</li>
+                        <li><span class="step-number">9</span><strong>同步隐私模式:</strong> await BackgroundTask.setPrivacyMode() 同步隐私模式状态到iOS端</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-cyan">🏠</div>
+                    <h2>首页路由判断流程</h2>
+                </div>
+                
+                <div class="mermaid">
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'curve': 'basis'}}}%%
+flowchart TD
+    Start(["MainPage.build"]) --> A{"CommonHelper.isLogin?"}
+    A -->|否| B["return LoginPage"]
+    A -->|是| C{"hasPhone?"}
+    C -->|否| D["return CompleteUserInfoPage"]
+    C -->|是| E["return Stack"] --> F["MainTabPage"] & G{"showOverlay?"}
+    G -->|是| H["buildOverlayView(根据隐私模式显示不同的启动logo)"]
+    G -->|否| I["直接显示"]
+    F --> J["Tab0: HomeConversationPage"] & K["Tab1: HomeContactPage"] & L["Tab2: MyPage"]
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-blue">🧩</div>
+                    <h2>App Widget 初始化</h2>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 10px;">💡 使用右上角按钮缩放查看，或滚动查看完整流程图</p>
+                
+                <div class="mermaid-large-wrapper">
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="zoomChart('app-widget-init-chart', -0.1)" title="缩小">−</button>
+                        <span class="zoom-level" id="app-widget-init-chart-level">100%</span>
+                        <button class="zoom-btn" onclick="zoomChart('app-widget-init-chart', 0.1)" title="放大">+</button>
+                        <button class="zoom-btn" onclick="resetZoom('app-widget-init-chart')" title="重置">↺</button>
+                    </div>
+                    <div class="mermaid-large" id="app-widget-init-chart">
+%%{init: {'flowchart': {'nodeSpacing': 15, 'rankSpacing': 25, 'curve': 'basis'}}}%%
+flowchart LR
+    subgraph Init["🚀 initState"]
+        direction TB
+        InitState["AppState.initState()"] --> Obs["addObserver"] & InitAppW["initApp()"] & DeepLinks["initDeepLinks()"] & RegDM["registerCallbacks()"] & AppDM["AppDownloadManager"] & Privacy["PrivacyModeManager"]
+    end
+    
+    subgraph InitResult["📦 初始化结果"]
+        direction TB
+        Locale["设置多语言"]
+        DeepLinksOK["DeepLink就绪"]
+        RegDMOK["下载回调注册"]
+        AppDMOK["下载管理器就绪"]
+        PrivacyOK["隐私模式就绪"]
+    end
+    
+    InitAppW --> Locale
+    DeepLinks --> DeepLinksOK
+    RegDM --> RegDMOK
+    AppDM --> AppDMOK
+    Privacy --> PrivacyOK
+    
+    subgraph Lifecycle["🔄 生命周期"]
+        direction TB
+        Life["didChangeAppLifecycleState"] --> Resumed["resumed前台"] & Paused["paused后台"]
+    end
+    
+    subgraph ForegroundOps["☀️ 前台"]
+        direction TB
+        BG1["handleChange(true)"] --> StopHB["stopHeartbeat"] & CheckConn["检查连接"]
+    end
+    
+    subgraph BackgroundOps["🌙 后台"]
+        direction TB
+        BG2["handleChange(false)"] --> StartHB["startHeartbeat"] & Mem["evictCache()"]
+    end
+    
+    Resumed --> ForegroundOps
+    Paused --> BackgroundOps
+    
+    subgraph BuildWidget["🏗️ build"]
+        direction TB
+        Build["GetMaterialApp"] --> Bloc["MultiBlocProvider"] --> Navi["NaviCountBloc"]
+        Build --> Home["MainPage()"]
+    end
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 版本升级 -->
+        <section id="upgrade" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-orange">⬆️</div>
+                    <h2>版本升级检查流程</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    subgraph Trigger["触发时机"]
+        T1["应用启动进入主页"]
+        T2["设置页手动检查"]
+    end
+    
+    T1 --> Check["checkAppVersion"]
+    T2 --> Check
+    
+    Check --> Channel{"判断渠道类型"}
+    Channel -->|GooglePlay| GP["checkVestVersion"]
+    Channel -->|其他渠道| Other["checkAppVersion"]
+    
+    GP --> Compare["canUpdate版本比较"]
+    Other --> Compare
+    
+    Compare --> Result{"需要更新?"}
+    Result -->|否| NoUpdate["返回不做操作"]
+    Result -->|是| Force{"isForce强制更新?"}
+    
+    Force -->|是| ForcePage["AppUpgradePage.show"]
+    Force -->|否| NonForce{"GooglePlay渠道?"}
+    
+    NonForce -->|是| Silent["静默更新"]
+    NonForce -->|否| CheckRemind{"已提醒过相同版本?"}
+    
+    CheckRemind -->|是| Skip["跳过"]
+    CheckRemind -->|否| SaveVersion["保存提醒时间和版本号"]
+    SaveVersion --> ShowDialog["AppUpgradeDialog"]
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-green">📥</div>
+                    <h2>下载与安装流程</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    Start(["updateApp"])
+    
+    Start --> Platform{"平台判断"}
+    Platform -->|iOS| AppStore["跳转AppStore"]
+    Platform -->|Android| AndroidCheck["检查下载条件"]
+    
+    AndroidCheck --> Conditions["检查权限和URL"]
+    Conditions --> CanDownload{"canDownload?"}
+    
+    CanDownload -->|否| Browser["打开外部浏览器下载"]
+    CanDownload -->|是| SilentCheck{"isSilent静默更新?"}
+    
+    SilentCheck -->|是| WiFiCheck{"WiFi连接?"}
+    WiFiCheck -->|是| Download["downloadApk"]
+    WiFiCheck -->|否| Downloaded{"已下载完成?"}
+    Downloaded -->|是| Apply["applyApkWithLoading"]
+    Downloaded -->|否| Wait["暂不下载"]
+    
+    SilentCheck -->|否| Download
+    
+    subgraph DownloadProcess["下载流程"]
+        DP1["检查是否已下载完成"]
+        DP2{"已完成?"}
+        DP3["提交下载任务"]
+        DP4["progressStream监听进度"]
+        DP5["更新downloadStatus"]
+        DP6["下载完成"]
+    end
+    
+    Download --> DP1 --> DP2
+    DP2 -->|是| Apply
+    DP2 -->|否| DP3 --> DP4 --> DP5 --> DP6 --> Apply
+    
+    subgraph InstallProcess["安装流程applyApk"]
+        I1["检查文件是否加密"]
+        I2{"加密?"}
+        I3["decryptFile解密"]
+        I4{"有安装权限?"}
+        I5["installApk系统安装"]
+        I6["patchApk热修复"]
+        I7["显示重启确认对话框"]
+        I8["restartApp"]
+        I9["清理临时文件"]
+    end
+    
+    Apply --> I1 --> I2
+    I2 -->|是| I3 --> I4
+    I2 -->|否| I4
+    I4 -->|是| I5 --> I9
+    I4 -->|否| I6 --> I7 --> I8 --> I9
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-purple">🧾</div>
+                    <h2>更新对话框 UI 组成</h2>
+                </div>
+                <div class="flow-description">
+                    <h4>AppUpgradeDialog</h4>
+                    <ul>
+                        <li>标题：发现新版本</li>
+                        <li>显示版本号与更新说明</li>
+                        <li>立即升级按钮</li>
+                        <li>跳过按钮（不支持热修复时显示）</li>
+                        <li>下载进度条（下载中显示）</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 会话列表 -->
+        <section id="conversation" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-blue">📋</div>
+                    <h2>会话列表数据加载流程</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    subgraph MainTab["MainTabPage初始化"]
+        M1["initState"]
+        M2["创建底部Tab配置"]
+        M3["AppLifecycleListener注册"]
+        M4["initialSync"]
+        M5["AppUpgradeUtils.checkAppUpdateHome"]
+        M6["NotificationUtils.requestNotificationPermission"]
+        M7["DynamicIconManager.checkFakeAppIcon"]
+    end
+    
+    M1 --> M2 --> M3 --> M4 --> M5 --> M6 --> M7
+    
+    subgraph InitialSync["initialSync详细"]
+        S1["检查Token有效性"]
+        S2{"CacheHelper.syncFriend?"}
+        S3["syncFriends同步好友"]
+        S4["syncFriendApplyCount"]
+        S5["syncOnlineUsers"]
+        S6["clearAllNotifications"]
+    end
+    
+    M4 --> S1 --> S2
+    S2 -->|是| S3 --> S4
+    S2 -->|否| S4
+    S4 --> S5 --> S6
+    
+    S6 --> Conv["HomeConversationPage.initState"]
+    
+    subgraph ConvInit["HomeConversationPage初始化"]
+        C1["Get.put HomeConversationLogic"]
+        C2["Get.put ChatFolderManager"]
+        C3["ever logic.list"]
+    end
+    
+    Conv --> C1 --> C2 --> C3
+    
+    C3 --> Logic["HomeConversationLogic.onReady"]
+    
+    subgraph LogicInit["Logic初始化"]
+        L1["super.onReady"]
+        L2["initListener"]
+    end
+    
+    Logic --> L1 --> L2
+    
+    L1 --> LoadData["ConversationLogic.loadData"]
+    
+    subgraph DataLoad["数据加载"]
+        DL1["conversationManager.getAll"]
+        DL2["从本地数据库获取会话"]
+        DL3["sortMsg排序"]
+        DL4["return result"]
+    end
+    
+    LoadData --> DL1 --> DL2 --> DL3 --> DL4
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-purple">👂</div>
+                    <h2>ConversationLogic 监听器</h2>
+                </div>
+                
+                <h3>监听器列表</h3>
+                <div class="mermaid">
+flowchart LR
+    subgraph Listeners["initListener 注册的 8 个监听器"]
+        L1["1. ClearAllRedDotListener - 清除所有未读红点"]
+        L2["2. RefreshMsgListListener - 刷新会话列表"]
+        L3["3. DeleteMsgListener - 删除会话"]
+        L4["4. RefreshListener - 刷新频道资料"]
+        L5["5. ClearChannelMsgListener - 清除频道消息"]
+        L6["6. RefreshMsgListener - 消息更新"]
+        L7["7. NewReminderListener - 新提醒(@消息)"]
+        L8["8. CmdListener - 命令监听"]
+    end
+                </div>
+                
+                <h3>1. ClearAllRedDotListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H1A["触发: 清除所有未读数"] --> H1B["list.refresh()"] --> H1C["刷新UI显示"]
+                </div>
+                
+                <h3>2. RefreshMsgListListener 处理（核心）</h3>
+                <div class="mermaid">
+flowchart LR
+    H2A["触发: 收到新消息/消息状态变化"] --> H2B["构建 msgMap 快速查找"] --> H2C{"会话是否存在?"}
+    H2C -->|是| H2D["更新现有会话并刷新缓存"] --> H2F["合并列表 totalList"]
+    H2C -->|否| H2E["添加新会话 isDeleted==0"] --> H2F
+    H2F --> H2G["sortMsg 重新排序"] --> H2H["过滤 hide 状态"] --> H2I["更新 list.value"]
+                </div>
+                
+                <h3>3. DeleteMsgListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H3A["触发: 删除会话"] --> H3B["查找会话索引"] --> H3C{"找到会话?"}
+    H3C -->|是| H3D["list.removeAt index"] --> H3E["移除缓存"] --> H3F["完成"]
+    H3C -->|否| H3F
+                </div>
+                
+                <h3>4. RefreshListener (Channel) 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H4A["触发: 频道资料更新 top/mute等"] --> H4B["更新缓存管理器中的channel"] --> H4C["查找并更新会话的channel"] --> H4D["sortMsgSync 同步排序"] --> H4E["刷新隐藏置顶会话数量"]
+                </div>
+                
+                <h3>5. ClearChannelMsgListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H5A["触发: 清除频道聊天记录"] --> H5B["查找会话索引"] --> H5C{"找到会话?"}
+    H5C -->|是| H5D["list.removeAt index"] --> H5E["移除缓存"] --> H5F["updateAllUnread 更新底部Tab未读数"]
+    H5C -->|否| H5F
+                </div>
+                
+                <h3>6. RefreshMsgListener (Message) 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H6A["触发: 单条消息更新"] --> H6B["getUIMsgWithChannel 获取最新会话"] --> H6C{"会话存在?"}
+    H6C -->|是| H6D["继承旧会话的channel缓存"] --> H6E["替换会话 list index = newConv"] --> H6F["刷新缓存"] --> H6G["sortMsgSync 同步排序"]
+    H6C -->|否| H6G
+                </div>
+                
+                <h3>7. NewReminderListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H7A["触发: 收到@消息提醒"] --> H7B{"缓存是否存在?"}
+    H7B -->|是| H7C["更新缓存中的提醒数据"] --> H7F["refreshData 刷新列表"]
+    H7B -->|否| H7D["查找对应会话"] --> H7E["refreshConversationCache 创建缓存并加载数据"] --> H7F
+                </div>
+                
+                <h3>8. CmdListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H8A["触发: 收到CMD命令"] --> H8B{"cmd类型判断"}
+    H8B -->|syncChannelUnread| H8C["同步频道未读数"] --> H8D["refreshData 刷新列表"] --> H8E["updateAllUnread 更新底部Tab未读数"]
+                </div>
+                
+                <div class="flow-description">
+                    <h4>监听器详细说明</h4>
+                    <ul>
+                        <li><span class="step-number">1</span><strong>ClearAllRedDotListener</strong> - 当用户执行"清除所有未读"操作时触发，调用 list.refresh() 刷新整个列表UI</li>
+                        <li><span class="step-number">2</span><strong>RefreshMsgListListener</strong> - 核心监听器，收到新消息或消息状态变化时触发，负责合并更新会话、添加新会话、排序并过滤隐藏状态</li>
+                        <li><span class="step-number">3</span><strong>DeleteMsgListener</strong> - 删除会话时触发，从列表中移除对应会话并清除缓存</li>
+                        <li><span class="step-number">4</span><strong>RefreshListener (Channel)</strong> - 频道资料更新时触发（如置顶、静音状态变化），更新缓存并重新排序</li>
+                        <li><span class="step-number">5</span><strong>ClearChannelMsgListener</strong> - 清除频道聊天记录时触发，移除会话、清除缓存并更新底部Tab未读数</li>
+                        <li><span class="step-number">6</span><strong>RefreshMsgListener (Message)</strong> - 单条消息更新时触发（如发送状态变化），获取最新会话数据并替换</li>
+                        <li><span class="step-number">7</span><strong>NewReminderListener</strong> - 收到@消息提醒时触发，更新缓存中的提醒数据或创建新缓存</li>
+                        <li><span class="step-number">8</span><strong>CmdListener</strong> - 收到服务端CMD命令时触发，目前处理 syncChannelUnread 命令来同步未读数</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-cyan">🔄</div>
+                    <h2>WKIM SDK 会话同步流程</h2>
+                </div>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant Server as Server
+    participant SDK as WKIM_SDK
+    participant DB as LocalDB
+    participant Logic as ConvLogic
+    participant UI as UILayer
+    
+    Note over Server,UI: IM连接建立后自动触发
+    
+    SDK->>SDK: addOnSyncConversationListener
+    SDK->>Server: syncConversation
+    Server-->>SDK: 返回会话列表数据
+    Note right of Server: 会话信息/消息/未读数
+    
+    SDK->>DB: 保存到本地数据库
+    SDK->>Logic: OnRefreshMsgListListener
+    Logic->>Logic: 更新list.value
+    Logic->>UI: Rx响应式更新
+    UI->>UI: 重新渲染会话列表
+    
+    Note over Server,UI: 按频道同步消息
+    
+    SDK->>SDK: addOnSyncChannelMsgListener
+    SDK->>Server: syncChannelMsg
+    Server-->>SDK: 返回频道消息
+    SDK->>DB: 保存消息
+                </div>
+            </div>
+        </section>
+        
+        <!-- 聊天页 -->
+        <section id="chat" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-pink">💬</div>
+                    <h2>进入聊天页流程</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart LR
+    Start(["点击会话项"])
+    
+    Start --> Click["UiConversationItem.onTap"]
+    Click --> Open["ChatPage.open"]
+    Open --> Navigate["Get.to ChatPage"]
+    
+    Navigate --> Init["ChatPage.initState"]
+    
+    subgraph PageInit["ChatPage初始化"]
+        P1["initData"]
+        P2["创建messageItemCallback"]
+        P3["设置listViewController回调"]
+        P4["订阅GroupExitEvent"]
+        P5["订阅logic.draft"]
+        P6["订阅logic.replyWKMsg"]
+        P7["设置currentChannelID"]
+        P8["初始化动画控制器"]
+    end
+    
+    Init --> P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7 --> P8
+    
+    P8 --> LogicReady["ChatLogic.onReady"]
+    
+    subgraph ChatLogicInit["ChatLogic.onReady流程"]
+        CL1["1.initMessageListener"]
+        CL2["2.initConnectionListener"]
+        CL3["3.initChannel"]
+        CL4["4.super.onReady"]
+        CL5["5.initSync"]
+        CL6["6.订阅事件"]
+        CL7["7.初始化newMsgBus"]
+    end
+    
+    LogicReady --> CL1 --> CL2 --> CL3 --> CL4 --> CL5 --> CL6 --> CL7
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-green">📂</div>
+                    <h2>频道初始化与数据同步</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    subgraph InitChannel["initChannel获取频道信息"]
+        IC1["channelManager.getChannel"]
+        IC2{"channel==null?"}
+        IC3["getChannel从服务器获取"]
+        IC4["fetchChannelInfo异步更新"]
+        IC5["更新到UI"]
+    end
+    
+    IC1 --> IC2
+    IC2 -->|是| IC3 --> IC5
+    IC2 -->|否| IC4 --> IC5
+    
+    subgraph InitSync["initSync同步数据"]
+        IS1["syncPinnedMessages"]
+        IS2["resetReminder"]
+        IS3["syncMsgExtra"]
+        IS4["syncReactions"]
+        IS5{"群聊?"}
+        IS6["syncGroupMembers"]
+        IS7["syncLatestSchedule"]
+        IS8["initDraft"]
+    end
+    
+    IS1 --> IS2 --> IS3 --> IS4 --> IS5
+    IS5 -->|是| IS6 --> IS7
+    IS5 -->|否| IS7
+    IS7 --> IS8
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-orange">📨</div>
+                    <h2>消息加载流程 (ChatMsgController)</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    Start(["ChatMsgController.onReady"])
+    
+    Start --> A["初始化taskLoadMoreQueue"]
+    A --> B["addListener"]
+    
+    subgraph ListenersConfig["监听器配置"]
+        LC1["stateListener:applyContainerState"]
+        LC2["markAsReadCallback:clearUnread"]
+    end
+    
+    B --> LC1
+    B --> LC2
+    
+    LC2 --> C["startRefresh"]
+    C --> D["doInit"]
+    
+    D --> E{"isFromPinnedMsg?"}
+    E -->|是| F["使用传入的置顶消息列表"]
+    E -->|否| G["initializeConversation"]
+    
+    subgraph SDKLoad["SDK内部处理"]
+        SDL1["从本地数据库加载消息"]
+        SDL2{"本地消息足够?"}
+        SDL3["触发网络同步"]
+        SDL4["通知stateListener更新UI"]
+    end
+    
+    G --> SDL1 --> SDL2
+    SDL2 -->|否| SDL3 --> SDL4
+    SDL2 -->|是| SDL4
+    
+    SDL4 --> ApplyNode["applyContainerState"]
+    
+    subgraph ApplyState["applyContainerState处理"]
+        AS1["messages.value反转"]
+        AS2["isCanPullDown.value"]
+        AS3["isCanPullUp.value"]
+        AS4["更新加载状态"]
+        AS5["处理未读消息定位"]
+    end
+    
+    ApplyNode --> AS1 --> AS2 --> AS3 --> AS4 --> AS5
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-cyan">🔄</div>
+                    <h2>消息同步渲染流程（本地/网络同步机制）</h2>
+                </div>
+                
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 10px;">💡 完整的消息同步渲染架构，包含本地数据库加载、网络同步、数据保存、回调渲染等核心流程</p>
+                
+                <h3>1. 核心架构概览</h3>
+                <div class="mermaid">
+flowchart TB
+    subgraph UI["UI层"]
+        ChatPage["ChatPage"]
+        ChatLogic["ChatLogic"]
+        ChatMsgController["ChatMsgController"]
+    end
+    
+    subgraph Manager["消息管理层"]
+        ConvMsgManager["ConversationMessageManager"]
+        StateUpdater["ConversationStateUpdater"]
+        ContinuityChecker["MessageContinuityChecker"]
+        DeletedHandler["DeletedMessagePlaceholderHandler"]
+    end
+    
+    subgraph Container["数据容器层"]
+        MsgContainer["ConversationMessageContainer"]
+        MsgList["messages: List&lt;WKMsg&gt;"]
+        StateInfo["状态信息: hasMore/isSyncing/state"]
+    end
+    
+    subgraph DataProvider["数据提供层"]
+        DefaultProvider["DefaultConversationMessageDataProvider"]
+        MessageDB["MessageDB本地数据库"]
+        WKIM_SDK["WKIM SDK网络同步"]
+    end
+    
+    ChatPage --> ChatLogic
+    ChatLogic --> ChatMsgController
+    ChatMsgController --> ConvMsgManager
+    
+    ConvMsgManager --> StateUpdater
+    ConvMsgManager --> ContinuityChecker
+    ConvMsgManager --> DeletedHandler
+    ConvMsgManager --> MsgContainer
+    
+    MsgContainer --> MsgList
+    MsgContainer --> StateInfo
+    
+    ConvMsgManager --> DefaultProvider
+    DefaultProvider --> MessageDB
+    DefaultProvider --> WKIM_SDK
+                </div>
+                
+                <h3>2. 初始化消息加载流程</h3>
+                <div class="mermaid">
+sequenceDiagram
+    participant UI as ChatMsgController
+    participant Manager as ConversationMessageManager
+    participant Container as MessageContainer
+    participant DB as MessageDB
+    participant Server as WKIM_SDK
+    
+    Note over UI,Server: 进入聊天页触发初始化
+    
+    UI->>Manager: initializeConversation(anchorOrderSeq)
+    Manager->>Manager: _taskQueue.push()串行执行
+    
+    Note over Manager: 1. 确定锚点和拉取模式
+    Manager->>Manager: 判断anchorOrderSeq位置
+    
+    alt anchorOrderSeq > 0 指定锚点
+        Manager->>Manager: 计算actualAnchor
+        Manager->>Manager: 判断是否接近最后一页
+    else anchorOrderSeq = 0 默认最新
+        Manager->>Manager: 使用lastOrderSeqWithLocation
+    end
+    
+    Note over Manager: 2. 查询本地连续消息块
+    Manager->>DB: queryFirstContinuousBlockAboveAnchor
+    DB-->>Manager: localMessages
+    
+    Manager->>Manager: 检查消息连续性
+    Manager->>Container: replaceMessages(localMessages)
+    Container->>UI: stateListener回调
+    UI->>UI: applyContainerState更新UI
+    
+    Note over Manager: 3. 判断是否需要网络同步
+    Manager->>Manager: prepareSyncMessagesFromInit
+    
+    alt 本地数据充足
+        Manager->>Manager: 直接完成初始化
+    else 需要网络同步
+        Manager->>Server: syncChannelMsg
+        Server-->>Manager: WKSyncChannelMsg
+        Manager->>DB: 保存消息到数据库
+        Manager->>Manager: 检测并保存已删除消息占位符
+        Manager->>DB: 重新查询本地消息
+        DB-->>Manager: newMessages
+        Manager->>Manager: handleSyncedMessages
+        Manager->>Container: 更新消息列表
+        Container->>UI: stateListener回调
+        UI->>UI: applyContainerState更新UI
+    end
+    
+    Manager->>Manager: _onInitFinished
+    Manager->>Container: isFirstSyncFinish=true
+                </div>
+                
+                <h3>3. 本地消息查询与连续性判断</h3>
+                <div class="mermaid">
+flowchart TD
+    Start(["_queryLocalMessages"])
+    
+    Start --> A["MessageDB.getMessages查询数据库"]
+    A --> B["按orderSeq排序"]
+    B --> C["getContinuousMessages检查连续性"]
+    
+    subgraph ContinuityCheck["连续性检查"]
+        CC1["获取已删除消息序号集合"]
+        CC2["遍历消息检查gap"]
+        CC3{"msgSeq差值 > 1?"}
+        CC4["检查gap是否都是已删除消息"]
+        CC5{"全部已删除?"}
+        CC6["认为连续"]
+        CC7["认为不连续,截断"]
+    end
+    
+    C --> CC1 --> CC2 --> CC3
+    CC3 -->|是| CC4 --> CC5
+    CC5 -->|是| CC6
+    CC5 -->|否| CC7
+    CC3 -->|否| CC6
+    
+    CC6 --> D["返回连续消息列表"]
+    CC7 --> D
+    
+    subgraph DeletedMsgLogic["已删除消息处理"]
+        DM1["deleted_message表记录已删除的msgSeq"]
+        DM2["服务器返回消息时检测gap"]
+        DM3["将gap中的seq保存为已删除占位符"]
+    end
+                </div>
+                
+                <h3>4. 网络同步流程详解</h3>
+                <div class="mermaid">
+sequenceDiagram
+    participant Manager as ConversationMessageManager
+    participant Provider as DataProvider
+    participant SDK as WKIM_SDK
+    participant Server as IM服务器
+    participant DB as 本地数据库
+    
+    Note over Manager,DB: 网络同步触发时机
+    
+    Manager->>Manager: _syncMessagesFromServer
+    Manager->>Manager: container.isSyncing=true
+    Manager->>Manager: container.state=loading
+    Manager->>Manager: _notifyStateChange更新UI
+    
+    Manager->>Provider: syncChannelMsg(startSeq,endSeq,limit,pullMode)
+    Provider->>SDK: setSyncChannelMsgListener
+    SDK->>Server: 请求同步消息
+    
+    Server-->>SDK: 返回WKSyncChannelMsg
+    Note right of Server: messages/more/offsetMsgSeq
+    
+    SDK-->>Provider: 回调syncResult
+    Provider-->>Manager: WKSyncChannelMsg
+    
+    alt 同步成功
+        Manager->>Manager: _saveDeletedMessagePlaceholders
+        Note over Manager: 检测服务器消息gap,保存已删除占位符
+        
+        Manager->>Manager: _updateConversationMsgSeq
+        Note over Manager: more=0时更新offset_msg_seq或last_msg_seq
+        
+        Manager->>DB: 重新查询本地消息
+        DB-->>Manager: newMessages
+        
+        Manager->>Manager: handleSyncedMessages
+        Manager->>Manager: checkMessageContinuity
+        
+        alt 与现有消息连续
+            Manager->>Manager: addMessages添加
+        else 不连续
+            Manager->>Manager: replaceMessages替换
+        end
+        
+        Manager->>Manager: container.state=completed
+    else 同步失败
+        Manager->>Manager: container.state=failed
+    end
+    
+    Manager->>Manager: container.isSyncing=false
+    Manager->>Manager: _notifyStateChange更新UI
+                </div>
+                
+                <h3>5. 加载更多消息流程</h3>
+                <div class="mermaid">
+flowchart TD
+    Start(["loadMore(pullMode)"])
+    
+    Start --> A{"检查边界"}
+    A -->|pullHistory且!hasMoreHistory| B["直接返回completed"]
+    A -->|pullNew且!hasMoreNew| B
+    A -->|可以加载| C["设置loading状态"]
+    
+    C --> D["获取锚点消息"]
+    D --> E{"pullMode方向"}
+    E -->|pullHistory| F["使用oldestMessage"]
+    E -->|pullNew| G["使用newestMessage"]
+    
+    F --> H["_queryLocalMessages查询本地"]
+    G --> H
+    
+    H --> I{"本地有数据?"}
+    I -->|是| J["addMessages添加到列表"]
+    J --> K["state=completed"]
+    K --> L["_notifyStateChange"]
+    
+    I -->|否| M["_syncMessagesFromLoadMore"]
+    M --> N["计算startOrderSeq"]
+    N --> O["_syncMessagesFromServer"]
+    O --> P["onComplete回调"]
+    P --> Q["addMessages添加"]
+    Q --> K
+    
+    O --> R["onError回调"]
+    R --> S["state=failed"]
+    S --> L
+                </div>
+                
+                <h3>6. 状态更新与UI渲染流程</h3>
+                <div class="mermaid">
+sequenceDiagram
+    participant Manager as ConversationMessageManager
+    participant Updater as ConversationStateUpdater
+    participant Container as MessageContainer
+    participant Controller as ChatMsgController
+    participant UI as ChatPage
+    
+    Note over Manager,UI: 状态更新触发渲染
+    
+    Manager->>Manager: _notifyStateChange
+    Manager->>Updater: updateConversationStates
+    
+    Updater->>Updater: queryConversation查询会话
+    Updater->>Updater: queryMaxOrderSeq查询最大序号
+    
+    Updater->>Container: 更新offsetMsgSeq
+    Updater->>Container: 更新lastMsgSeq
+    Updater->>Container: 更新lastReadMsgSeq
+    Updater->>Container: 更新unreadCount
+    
+    Updater->>Updater: _checkHasMoreHistory
+    Updater->>Container: hasMoreHistory
+    
+    Updater->>Updater: _checkHasMoreNew
+    Updater->>Container: hasMoreNew
+    
+    Manager->>Controller: stateListener回调
+    
+    Controller->>Controller: applyContainerState
+    Controller->>Controller: messages.value=container.messages.reversed
+    Controller->>Controller: isCanPullDown.value=hasMoreHistory
+    Controller->>Controller: isCanPullUp.value=hasMoreNew
+    Controller->>Controller: 更新pullDownLoadStatus/pullUpLoadStatus
+    Controller->>Controller: 处理未读消息定位
+    
+    Controller->>UI: Rx响应式更新
+    UI->>UI: ListView重新渲染
+                </div>
+                
+                <h3>7. 新消息接收与渲染流程</h3>
+                <div class="mermaid">
+sequenceDiagram
+    participant SDK as WKIM_SDK
+    participant Logic as ChatLogic
+    participant Bus as BatchMessageBus
+    participant Manager as ConversationMessageManager
+    participant Container as MessageContainer
+    participant Scroll as ChatScrollController
+    participant UI as ChatPage
+    
+    Note over SDK,UI: 收到新消息
+    
+    SDK->>Logic: OnNewMsgListener(msgs)
+    Logic->>Logic: 过滤当前频道消息
+    Logic->>Bus: push(_NewMsgTask)
+    
+    Note over Bus: 300ms防抖批量处理
+    
+    Bus->>Logic: handler(batch)
+    Logic->>Logic: _receivedMessages
+    
+    Logic->>Manager: checkMessageContinuity
+    Manager-->>Logic: isContinue
+    
+    alt 消息不连续
+        Logic->>Logic: loadFooterData加载更多
+    else 消息连续
+        Logic->>Logic: 过滤不显示的消息类型
+        Logic->>Logic: 检查消息是否已存在
+        Logic->>Manager: addNewMessage(insertMessages)
+        Manager->>Container: 添加消息到列表
+        Manager->>Logic: stateListener回调
+        
+        alt 滚动位置<=500
+            Logic->>Logic: _unreadManager.markBottomAsRead
+            Logic->>Scroll: jumpToBottom
+        else 滚动位置较远
+            Logic->>Logic: updateIndicatorVisible
+            Logic->>UI: 显示新消息提示按钮
+        end
+    end
+    
+    Logic->>UI: messages.refresh()
+                </div>
+                
+                <h3>8. 发送消息入库与渲染流程</h3>
+                <div class="mermaid">
+sequenceDiagram
+    participant User as 用户
+    participant Logic as ChatLogic
+    participant SendUtils as ChatSendUtils
+    participant SDK as WKIM_SDK
+    participant DB as 本地数据库
+    participant Manager as ConversationMessageManager
+    participant Scroll as ChatScrollController
+    participant UI as ChatPage
+    
+    User->>Logic: 点击发送
+    Logic->>SendUtils: sendTextMessage
+    SendUtils->>SDK: WKIM.shared.messageManager.sendMessage
+    
+    SDK->>SDK: 生成clientMsgNO
+    SDK->>DB: 消息入库(status=sending)
+    SDK->>Logic: OnMsgInsertedListener
+    
+    Logic->>Logic: _receivedMessages(isSendMsg=true)
+    Logic->>Manager: addNewMessage
+    Manager->>Manager: 添加消息到列表
+    Manager->>Logic: stateListener回调
+    
+    Logic->>Scroll: jumpToBottom
+    Logic->>UI: 显示发送中状态
+    
+    Note over SDK: 消息发送到服务器
+    
+    SDK->>SDK: 发送完成
+    SDK->>DB: 更新status/messageSeq
+    SDK->>Logic: OnRefreshMsgListener
+    
+    Logic->>Manager: updateMessage
+    Manager->>Manager: 更新消息状态
+    Manager->>Logic: stateListener回调
+    
+    alt messageSeq从0变为非0
+        Logic->>Scroll: jumpToBottom
+    end
+    
+    Logic->>UI: 更新消息状态显示
+                </div>
+                
+                <h3>9. 会话同步事件处理</h3>
+                <div class="mermaid">
+flowchart TD
+    Start(["ConversationSyncEvent"])
+    
+    Start --> A["eventBus监听到事件"]
+    A --> B{"channelID匹配?"}
+    B -->|否| C["忽略"]
+    B -->|是| D["获取当前最大消息序号"]
+    
+    D --> E{"maxMsgSeq > currentMaxSeq?"}
+    E -->|否| F["无需处理"]
+    E -->|是| G["onConversationSynced"]
+    
+    G --> H["updateConversationStates"]
+    H --> I["loadFooterData(isForce=true)"]
+    I --> J["加载新消息"]
+    J --> K["更新UI"]
+    
+    subgraph SyncTrigger["同步触发时机"]
+        T1["IM连接成功后自动同步"]
+        T2["会话列表刷新时"]
+        T3["App恢复前台时"]
+    end
+                </div>
+                
+                <h3>10. 消息容器状态管理</h3>
+                <div class="mermaid">
+flowchart LR
+    subgraph Container["ConversationMessageContainer"]
+        direction TB
+        C1["channelId/channelType"]
+        C2["messages: List&lt;WKMsg&gt;"]
+        C3["state: loading/completed/failed"]
+        C4["direction: pullHistory/pullNew"]
+        C5["uiLoadPosition: top/bottom"]
+        C6["hasMoreHistory: bool"]
+        C7["hasMoreNew: bool"]
+        C8["isSyncing: bool"]
+        C9["isFirstSyncFinish: bool"]
+        C10["offsetMsgSeq: 起始序号"]
+        C11["lastMsgSeq: 最后序号"]
+        C12["lastReadMsgSeq: 已读序号"]
+        C13["unreadCount: 未读数"]
+    end
+    
+    subgraph StateTransition["状态转换"]
+        ST1["idle"] -->|"startRefresh"| ST2["loading"]
+        ST2 -->|"同步成功"| ST3["completed"]
+        ST2 -->|"同步失败"| ST4["failed"]
+        ST4 -->|"重试"| ST2
+        ST3 -->|"loadMore"| ST2
+    end
+    
+    subgraph UIMapping["UI状态映射"]
+        UM1["loading → 显示加载进度"]
+        UM2["completed → 隐藏加载进度"]
+        UM3["failed → 显示错误提示"]
+        UM4["hasMoreHistory → 下拉刷新可用"]
+        UM5["hasMoreNew → 上拉加载可用"]
+        UM6["uiLoadPosition → 进度条位置"]
+    end
+                </div>
+                
+                <div class="flow-description">
+                    <h4>消息同步渲染核心要点</h4>
+                    <ul>
+                        <li><span class="step-number">1</span><strong>本地优先策略</strong> - 优先从本地数据库加载消息，快速显示UI，再异步同步网络数据</li>
+                        <li><span class="step-number">2</span><strong>连续性检查</strong> - 通过MessageContinuityChecker检查消息序号连续性，处理已删除消息占位符</li>
+                        <li><span class="step-number">3</span><strong>增量同步</strong> - 根据anchorOrderSeq和pullMode确定同步范围，避免重复加载</li>
+                        <li><span class="step-number">4</span><strong>状态容器</strong> - ConversationMessageContainer维护消息列表和各种状态，支持响应式更新</li>
+                        <li><span class="step-number">5</span><strong>任务队列</strong> - TaskQueue确保initializeConversation和loadMore串行执行，避免并发问题</li>
+                        <li><span class="step-number">6</span><strong>批量处理</strong> - BatchMessageBus对新消息进行300ms防抖批量处理，减少UI刷新次数</li>
+                        <li><span class="step-number">7</span><strong>边界管理</strong> - hasMoreHistory/hasMoreNew结合offsetMsgSeq/lastMsgSeq判断是否还有更多消息</li>
+                        <li><span class="step-number">8</span><strong>已删除消息</strong> - 服务器返回消息时检测gap，保存为已删除占位符，确保连续性判断准确</li>
+                        <li><span class="step-number">9</span><strong>UI位置分离</strong> - uiLoadPosition与数据direction分离，支持"向前拉取但进度条在底部"等场景</li>
+                        <li><span class="step-number">10</span><strong>未读管理</strong> - ChatUnreadManager动态计算已读范围外的未读数，支持分割线显示</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-purple">👂</div>
+                    <h2>ChatLogic 消息监听器</h2>
+                </div>
+                
+                <h3>监听器列表</h3>
+                <div class="mermaid">
+flowchart LR
+    subgraph Listeners["initMessageListener 注册的 10 个监听器"]
+        L1["1. OnRefreshListener - 频道资料刷新"]
+        L2["2. OnMsgInsertedListener - 消息入库"]
+        L3["3. OnNewMsgListener - 新消息"]
+        L4["4. OnRefreshMsgListener - 消息状态刷新"]
+        L5["5. OnRefreshMsgListListener - 会话列表刷新"]
+        L6["6. OnDeleteMsgListener - 删除消息"]
+        L7["7. OnClearChannelMsgListener - 清除频道消息"]
+        L8["8. OnNewReminderListener - @消息提醒"]
+        L9["9. channelMemberManager - 群成员变化"]
+        L10["10. OnCmdListener - CMD命令"]
+    end
+                </div>
+                
+                <h3>1. OnRefreshListener (Channel) 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H1A["触发: 频道资料更新"] --> H1B{"channelID匹配?"} 
+    H1B -->|是| H1C["更新 channel.value"] --> H1D["触发标题栏UI更新"]
+    H1B -->|否| H1E["忽略"]
+                </div>
+                
+                <h3>2. OnMsgInsertedListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H2A["触发: 发送消息入库返回"] --> H2B["过滤当前频道消息"] --> H2C["_receivedMessages isSendMsg=true"] --> H2D["插入消息到列表"] --> H2E["跳转到底部"]
+                </div>
+                
+                <h3>3. OnNewMsgListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H3A["触发: 收到新消息"] --> H3B["过滤当前频道消息"] --> H3C["newMsgBus.push 批量处理"] --> H3D["_receivedMessages isSendMsg=false"]
+    
+    subgraph ReceivedProcess["_receivedMessages 处理"]
+        R1["检查消息连续性"]
+        R2{"连续?"}
+        R3["过滤不显示的消息类型"]
+        R4["检查消息是否已存在"]
+        R5["插入消息到列表"]
+        R6{"是通话消息?"}
+        R7["VideoCallLogic.handleCall"]
+        R8{"滚动位置<=500?"}
+        R9["跳转到底部"]
+        R10["显示新消息提示"]
+    end
+    
+    H3D --> R1 --> R2
+    R2 -->|否| LoadFooter["loadFooterData"]
+    R2 -->|是| R3 --> R4 --> R5 --> R6
+    R6 -->|是| R7 --> R8
+    R6 -->|否| R8
+    R8 -->|是| R9
+    R8 -->|否| R10
+                </div>
+                
+                <h3>4. OnRefreshMsgListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H4A["触发: 消息状态更新"] --> H4B{"channelID匹配?"}
+    H4B -->|是| H4C{"isMutualDeleted==1?"}
+    H4C -->|是| H4D["从列表移除消息"]
+    H4C -->|否| H4E["updateMessage 更新消息状态"]
+    H4E --> H4F{"messageSeq从0变为非0?"}
+    H4F -->|是| H4G["jumpToBottom 跳转到底部"]
+    H4B -->|否| H4H["忽略"]
+                </div>
+                
+                <h3>5. OnRefreshMsgListListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H5A["触发: 会话列表刷新"] --> H5B["遍历msgs"] --> H5C{"channelID匹配?"}
+    H5C -->|是| H5D["_refreshChatBg 刷新聊天背景"]
+    H5C -->|否| H5E["忽略"]
+                </div>
+                
+                <h3>6. OnDeleteMsgListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H6A["触发: 删除消息"] --> H6B["remoteMessageByClientMsgNo"] --> H6C["从消息列表移除"]
+                </div>
+                
+                <h3>7. OnClearChannelMsgListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H7A["触发: 清除频道聊天记录"] --> H7B{"channelID匹配?"}
+    H7B -->|是| H7C["clearConversation 清空消息列表"] --> H7D["clearPinnedMessage 清空置顶"] --> H7E["updateIndicatorVisible"]
+    H7B -->|否| H7F["忽略"]
+                </div>
+                
+                <h3>8. OnNewReminderListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H8A["触发: 收到@消息提醒"] --> H8B["resetReminder 重置提醒状态"]
+                </div>
+                
+                <h3>9. channelMemberManager 群成员监听</h3>
+                <div class="mermaid">
+flowchart LR
+    subgraph MemberListeners["三个群成员监听器"]
+        M1["OnNewMemberListener"]
+        M2["OnDeleteMemberListener"]
+        M3["OnRefreshMemberListener"]
+    end
+    
+    M1 --> M1A["过滤当前群成员"] --> M1B["channelMembers.addAll 添加成员"]
+    M2 --> M2A["获取成员ID列表"] --> M2B["channelMembers.removeWhere 移除成员"]
+    M3 --> M3A{"isEnd==true?"}
+    M3A -->|是| M3B["重新获取全部成员"] --> M3C["清除消息发送者缓存"] --> M3D["messages.refresh"]
+    M3A -->|否| M3E["等待下一次回调"]
+                </div>
+                
+                <h3>10. OnCmdListener 处理</h3>
+                <div class="mermaid">
+flowchart LR
+    H10A["触发: 收到CMD命令"] --> H10B{"channelID匹配?"}
+    H10B -->|是| H10C{"cmd类型判断"}
+    H10C -->|conversationMessageBothClear| H10D["clearPinnedMessage 清空置顶消息"]
+    H10B -->|否| H10E["忽略"]
+                </div>
+                
+                <div class="flow-description">
+                    <h4>监听器详细说明</h4>
+                    <ul>
+                        <li><span class="step-number">1</span><strong>OnRefreshListener (Channel)</strong> - 频道资料更新时触发，更新聊天页标题栏显示的频道名称、头像等信息</li>
+                        <li><span class="step-number">2</span><strong>OnMsgInsertedListener</strong> - 发送消息入库后触发，将消息插入列表并跳转到底部显示</li>
+                        <li><span class="step-number">3</span><strong>OnNewMsgListener</strong> - 收到新消息时触发，通过 newMsgBus 批量处理，检查消息连续性、过滤类型、处理通话消息、更新UI</li>
+                        <li><span class="step-number">4</span><strong>OnRefreshMsgListener</strong> - 消息状态变化时触发（如发送成功/失败），处理多删消息移除，更新消息状态</li>
+                        <li><span class="step-number">5</span><strong>OnRefreshMsgListListener</strong> - 会话列表刷新时触发，用于刷新聊天背景图片</li>
+                        <li><span class="step-number">6</span><strong>OnDeleteMsgListener</strong> - 删除消息时触发，从消息列表中移除指定消息</li>
+                        <li><span class="step-number">7</span><strong>OnClearChannelMsgListener</strong> - 清除频道聊天记录时触发，清空消息列表和置顶消息</li>
+                        <li><span class="step-number">8</span><strong>OnNewReminderListener</strong> - 收到@消息提醒时触发，重置提醒状态</li>
+                        <li><span class="step-number">9</span><strong>channelMemberManager</strong> - 包含三个监听器：新成员加入、成员移除、成员信息刷新，用于维护群成员列表</li>
+                        <li><span class="step-number">10</span><strong>OnCmdListener</strong> - 收到服务端CMD命令时触发，处理 conversationMessageBothClear（双清）命令</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 消息收发 -->
+        <section id="message" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-green">📤</div>
+                    <h2>发送消息流程</h2>
+                </div>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant User as User
+    participant Input as ChatInput
+    participant Logic as ChatLogic
+    participant Utils as SendUtils
+    participant SDK as WKIM_SDK
+    participant DB as LocalDB
+    participant Server as Server
+    participant UI as UILayer
+    
+    User->>Input: 点击发送按钮
+    Input->>Logic: onMessageSendCallback
+    Logic->>Utils: sendTextMessage
+    
+    Utils->>Utils: 构建WKTextContent
+    Note right of Utils: 设置文本内容和回复引用
+    
+    Utils->>SDK: sendMessage
+    SDK->>SDK: 生成clientMsgNO
+    SDK->>DB: 消息入库
+    SDK->>Logic: OnMsgInsertedListener
+    Logic->>UI: 显示消息发送中状态
+    
+    SDK->>SDK: 检查是否需要上传附件
+    
+    alt 需要上传附件
+        SDK->>Utils: OnUploadAttachmentListener
+        Utils->>Server: onUploadAttachment
+    end
+    
+    SDK->>Server: 发送到服务器
+    
+    alt 发送成功
+        Server-->>SDK: 返回messageSeq
+        SDK->>SDK: 更新status
+        SDK->>Logic: OnRefreshMsgListener
+        Logic->>UI: 更新消息状态成功
+    else 发送失败
+        Server-->>SDK: 失败响应
+        SDK->>SDK: status=sendFail
+        SDK->>Logic: OnRefreshMsgListener
+        Logic->>UI: 显示发送失败
+    end
+    
+    Utils->>Input: 清空输入框
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-blue">📥</div>
+                    <h2>接收消息流程</h2>
+                </div>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant Server as Server
+    participant SDK as WKIM_SDK
+    participant DB as LocalDB
+    participant IMUtils as IMUtils
+    participant ConvLogic as ConvLogic
+    participant ChatLogicR as ChatLogic
+    participant UI as UILayer
+    
+    Server->>SDK: 推送新消息
+    SDK->>SDK: 1.消息解密解码
+    SDK->>DB: 2.消息入库
+    
+    SDK->>IMUtils: 3.OnNewMsgListener全局
+    
+    alt 通话消息
+        IMUtils->>IMUtils: handleCall
+    else 群系统消息
+        IMUtils->>IMUtils: 同步群信息
+    else 普通消息
+        IMUtils->>IMUtils: 显示本地通知
+    end
+    
+    SDK->>ConvLogic: 4.OnRefreshMsgListListener
+    ConvLogic->>UI: 更新会话列表
+    
+    Note over SDK,UI: 如果在聊天页
+    
+    SDK->>ChatLogicR: 5.OnNewMsgListener
+    ChatLogicR->>ChatLogicR: newMsgBus.push
+    ChatLogicR->>ChatLogicR: receivedMessages
+    
+    ChatLogicR->>ChatLogicR: 检查消息连续性
+    ChatLogicR->>ChatLogicR: 过滤消息类型
+    ChatLogicR->>ChatLogicR: addNewMessage
+    
+    alt 滚动位置在可见范围内
+        ChatLogicR->>UI: 滚动到底部
+    else 滚动位置较远
+        ChatLogicR->>UI: 显示新消息提示
+    end
+    
+    ChatLogicR->>ChatLogicR: updateIndicatorVisible
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-orange">🔢</div>
+                    <h2>未读数管理流程</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    subgraph Source["未读数来源"]
+        SRC1["会话同步时获取"]
+        SRC2["收到新消息时累加"]
+    end
+    
+    subgraph Update["未读数更新"]
+        U1["进入聊天页finishTask"]
+        U2["阅读消息onMessageViewed"]
+        U3["退出聊天页"]
+    end
+    
+    U1 --> C1["clearUnread清零"]
+    U2 --> C2["ChatUnreadManager.update"]
+    U3 --> C3["上报剩余未读数"]
+    
+    subgraph Display["未读数显示"]
+        D1["会话列表红点角标"]
+        D2["底部Tab Badge"]
+        D3["桌面图标角标"]
+    end
+    
+    C1 --> D1
+    C2 --> D2
+    C3 --> D3
+                </div>
+            </div>
+        </section>
+        
+        <!-- 联系人模块 -->
+        <section id="contact" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-green">👥</div>
+                    <h2>联系人模块整体架构</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    subgraph UI["联系人UI层"]
+        HomeContact["HomeContactPage联系人首页"]
+        ContactPage["ContactPage联系人列表"]
+        NewFriends["FriendApplyListPage新朋友"]
+        MyGroups["MyGroupsPage保存的群组"]
+        RobotList["RobotListPage机器人列表"]
+        BlackList["BlackFriendPage黑名单"]
+    end
+    
+    subgraph Logic["业务逻辑层"]
+        ContactLogic["ContactLogic"]
+        ApplyLogic["FriendApplyListLogic"]
+        GroupsLogic["MyGroupsLogic"]
+    end
+    
+    subgraph Data["数据层"]
+        WKIM["WKIM SDK"]
+        HTTP["HTTP API"]
+        ChannelManager["ChannelManager"]
+    end
+    
+    HomeContact --> ContactPage
+    HomeContact --> NewFriends
+    HomeContact --> MyGroups
+    HomeContact --> RobotList
+    HomeContact --> BlackList
+    
+    ContactPage --> ContactLogic
+    NewFriends --> ApplyLogic
+    MyGroups --> GroupsLogic
+    
+    ContactLogic --> WKIM
+    ContactLogic --> ChannelManager
+    ApplyLogic --> HTTP
+    GroupsLogic --> HTTP
+                </div>
+                
+                <div class="architecture-grid">
+                    <div class="arch-item">
+                        <h4>👥 联系人首页</h4>
+                        <p>HomeContactPage 包含新朋友、机器人、保存的群组、黑名单入口及联系人列表</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>📋 联系人列表</h4>
+                        <p>ContactPage 显示所有好友，支持字母索引、搜索过滤、点击跳转用户详情</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>🆕 新朋友</h4>
+                        <p>FriendApplyListPage 展示好友申请列表，支持同意/拒绝操作</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>📁 保存的群组</h4>
+                        <p>MyGroupsPage 展示用户加入的所有群组列表</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-blue">📋</div>
+                    <h2>联系人列表加载流程</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    Start(["HomeContactPage.initState"])
+    
+    Start --> A["Get.put ContactLogic"]
+    A --> B["ContactLogic.onReady"]
+    
+    subgraph LogicInit["ContactLogic初始化"]
+        L1["super.onReady"]
+        L2["_initListener"]
+    end
+    
+    B --> L1 --> L2
+    
+    L1 --> LoadData["loadData"]
+    
+    subgraph DataLoad["数据加载"]
+        DL1["channelManager.getWithFollowAndStatus"]
+        DL2["从本地数据库获取好友列表"]
+        DL3["过滤follow=1且status=1的联系人"]
+        DL4["return result"]
+    end
+    
+    LoadData --> DL1 --> DL2 --> DL3 --> DL4
+    
+    DL4 --> Group["_group分组处理"]
+    
+    subgraph GroupProcess["分组排序"]
+        G1["过滤系统频道"]
+        G2["按拼音首字母排序"]
+        G3["生成groupedIndexMap"]
+        G4["更新letters字母列表"]
+    end
+    
+    Group --> G1 --> G2 --> G3 --> G4
+    
+    G4 --> UIUpdate["更新UI filterItems"]
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-purple">👂</div>
+                    <h2>ContactLogic 监听器</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart LR
+    subgraph Listeners["initListener注册的监听器"]
+        L1["OnRefreshListener刷新频道监听"]
+    end
+    
+    subgraph Handler["监听器处理"]
+        H1["收到频道更新事件"]
+        H2["查找对应联系人"]
+        H3{"follow=0或isDeleted=1?"}
+        H4["从列表移除"]
+        H5["更新联系人信息"]
+        H6["触发UI刷新"]
+    end
+    
+    L1 --> H1 --> H2 --> H3
+    H3 -->|是| H4 --> H6
+    H3 -->|否| H5 --> H6
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-orange">🆕</div>
+                    <h2>好友申请处理流程</h2>
+                </div>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant User as User
+    participant Page as FriendApplyListPage
+    participant Logic as FriendApplyListLogic
+    participant API as FriendApi
+    participant Server as Server
+    
+    User->>Page: 进入新朋友页面
+    Page->>Logic: onReady
+    Logic->>API: friendApplyList
+    API->>Server: 获取申请列表
+    Server-->>API: 返回申请数据
+    API-->>Logic: List&lt;FriendApply&gt;
+    Logic->>Page: 更新UI显示列表
+    
+    User->>Page: 点击同意按钮
+    Page->>Logic: agreeApply(item)
+    Logic->>API: agreeFriendApply
+    API->>Server: 同意好友申请
+    Server-->>API: 成功响应
+    Logic->>Logic: refreshData刷新列表
+    Logic->>Page: 更新UI
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-cyan">🔄</div>
+                    <h2>联系人同步流程</h2>
+                </div>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant App as App
+    participant MainTab as MainTabPage
+    participant HTTP as HttpUtils
+    participant Server as Server
+    participant WKIM as WKIM_SDK
+    participant DB as LocalDB
+    participant EventBus as EventBus
+    participant Contact as ContactPage
+    
+    Note over App,Contact: 应用启动后触发联系人同步
+    
+    MainTab->>MainTab: initialSync
+    MainTab->>HTTP: syncFriends
+    HTTP->>Server: 获取好友列表
+    Server-->>HTTP: 返回好友数据
+    HTTP->>WKIM: 更新频道信息
+    WKIM->>DB: 保存到本地数据库
+    HTTP->>EventBus: 发送ContactSyncEvent
+    EventBus->>Contact: 触发refreshData
+    Contact->>Contact: 重新加载联系人列表
+                </div>
+            </div>
+        </section>
+        
+        <!-- 我的模块 -->
+        <section id="mine" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-pink">👤</div>
+                    <h2>我的模块整体架构</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    subgraph UI["我的UI层"]
+        MyPage["MyPage我的首页"]
+        MyInfo["MyInfoPage个人资料"]
+        Security["SecurityPrivacyPage安全与隐私"]
+        Notification["MessageNotificationPage消息通知"]
+        Accessibility["AccessibilityPage无障碍"]
+        CommonSetting["CommonSettingPage通用设置"]
+    end
+    
+    subgraph SubPages["子页面"]
+        ChangePassword["ChangePasswordPage修改密码"]
+        DestroyAccount["DestroyAccountPage注销账号"]
+        Language["LanguageSettingPage语言设置"]
+        Translation["TranslationSettingPage翻译设置"]
+        WebClient["WebClientPage网页端"]
+        AutoReply["AutoReplySettingPage自动回复"]
+    end
+    
+    subgraph Logic["业务逻辑层"]
+        MyInfoLogic["MyInfoLogic"]
+        SettingManager["MySettingManager"]
+    end
+    
+    subgraph Data["数据层"]
+        HTTP["HTTP API"]
+        Cache["CacheHelper"]
+    end
+    
+    MyPage --> MyInfo
+    MyPage --> Security
+    MyPage --> Notification
+    MyPage --> Accessibility
+    MyPage --> CommonSetting
+    
+    Security --> ChangePassword
+    Security --> DestroyAccount
+    CommonSetting --> Language
+    CommonSetting --> Translation
+    
+    MyInfo --> MyInfoLogic
+    MyInfoLogic --> HTTP
+    MyInfoLogic --> Cache
+    CommonSetting --> SettingManager
+                </div>
+                
+                <div class="architecture-grid">
+                    <div class="arch-item">
+                        <h4>👤 我的首页</h4>
+                        <p>MyPage 展示用户头像、昵称，提供个人资料、安全隐私、通知、通用设置入口</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>📝 个人资料</h4>
+                        <p>MyInfoPage 支持修改头像、昵称、签名、性别、短号、邮箱、手机号等</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>🔒 安全与隐私</h4>
+                        <p>SecurityPrivacyPage 包含用户协议、隐私政策、修改密码、注销账号</p>
+                    </div>
+                    <div class="arch-item">
+                        <h4>⚙️ 通用设置</h4>
+                        <p>CommonSettingPage 包含缓存清理、字体设置、语言、翻译、退出登录等</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-blue">📝</div>
+                    <h2>个人资料加载流程</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    Start(["MyPage.initState"])
+    
+    Start --> A["Get.put MyInfoLogic"]
+    A --> B["MyInfoLogic.onReady"]
+    
+    subgraph LogicInit["MyInfoLogic初始化"]
+        L1["data.value = CacheHelper.userProfile"]
+        L2["refreshData"]
+    end
+    
+    B --> L1 --> L2
+    
+    L2 --> LoadData["loadData"]
+    
+    subgraph DataLoad["数据加载"]
+        DL1["HttpUtils.syncUserLoginInfo"]
+        DL2["HttpUtils.getInviteCode"]
+        DL3["CacheHelper.saveInviteInfo"]
+        DL4["return CacheHelper.userProfile"]
+    end
+    
+    LoadData --> DL1 --> DL2 --> DL3 --> DL4
+    
+    DL4 --> UIUpdate["更新UI data.value"]
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-green">✏️</div>
+                    <h2>个人资料修改流程</h2>
+                </div>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant User as User
+    participant Page as MyInfoPage
+    participant Logic as MyInfoLogic
+    participant Dialog as DialogUtils
+    participant HTTP as HttpUtils
+    participant Server as Server
+    participant Cache as CacheHelper
+    participant WKIM as WKIM_SDK
+    
+    User->>Page: 点击修改项（如昵称）
+    Page->>Logic: reName/modifySignature等
+    Logic->>Dialog: showInputDialog
+    Dialog-->>User: 显示输入框
+    User->>Dialog: 输入新值并确认
+    Dialog-->>Logic: 返回输入结果
+    
+    Logic->>HTTP: updateInfo(key, value)
+    HTTP->>Server: 提交修改请求
+    Server-->>HTTP: 返回成功响应
+    
+    Logic->>Cache: saveUserProfile(newInfo)
+    Logic->>Logic: data.value = newInfo
+    Logic->>HTTP: getChannel刷新频道
+    HTTP->>WKIM: 更新本地频道信息
+    Logic->>Page: 显示修改成功
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-orange">📷</div>
+                    <h2>头像上传流程</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    Start(["选择图片"])
+    
+    Start --> Pick["ImagePicker选择图片"]
+    Pick --> Crop["ImageUtils.cropImage裁剪"]
+    Crop --> Compress["ImageUtils.compressFile压缩"]
+    Compress --> Upload["uploadPhoto上传"]
+    
+    subgraph UploadProcess["上传流程"]
+        U1["HttpUtils.uploadAvatar"]
+        U2{"上传成功?"}
+        U3["clearMyAvatarCache清除缓存"]
+        U4["更新data.value"]
+        U5["getChannel刷新频道"]
+        U6["显示修改成功"]
+        U7["显示修改失败"]
+    end
+    
+    Upload --> U1 --> U2
+    U2 -->|是| U3 --> U4 --> U5 --> U6
+    U2 -->|否| U7
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-purple">🚪</div>
+                    <h2>退出登录流程</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    Start(["点击退出登录"])
+    
+    Start --> Confirm["_confirmLogout显示确认对话框"]
+    Confirm --> Choice{"用户选择"}
+    
+    Choice -->|取消| Cancel["关闭对话框"]
+    Choice -->|确认| Logout["CommonHelper.exitLogin"]
+    
+    subgraph LogoutProcess["退出登录流程"]
+        L1["断开IM连接"]
+        L2["清除本地缓存"]
+        L3["清除用户数据"]
+        L4["跳转到登录页"]
+    end
+    
+    Logout --> L1 --> L2 --> L3 --> L4
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-cyan">⚙️</div>
+                    <h2>通用设置功能</h2>
+                </div>
+                
+                <div class="flow-description">
+                    <h4>CommonSettingPage 功能列表</h4>
+                    <ul>
+                        <li><strong>清除缓存</strong> - 清理图片缓存、下载文件、视频缓存、日志文件</li>
+                        <li><strong>字体设置</strong> - 关怀模式，调整应用字体大小</li>
+                        <li><strong>多语言</strong> - 切换应用显示语言</li>
+                        <li><strong>翻译设置</strong> - 配置消息翻译目标语言</li>
+                        <li><strong>双击消息行为</strong> - 设置双击消息的操作（复制/翻译等）</li>
+                        <li><strong>全局聊天背景</strong> - 设置所有聊天页面的默认背景</li>
+                        <li><strong>发送按钮换行</strong> - 将发送按钮替换为换行按钮</li>
+                        <li><strong>隐私搜索设置</strong> - 控制是否允许通过手机号/短号搜索</li>
+                        <li><strong>版本信息</strong> - 显示当前版本，点击检查更新</li>
+                        <li><strong>退出登录</strong> - 退出当前账号</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 连接管理 -->
+        <section id="connection" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-cyan">🔌</div>
+                    <h2>Socket 连接状态机</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    Start(("开始")) --> Connecting["Connecting连接中"]
+    Connecting --> Success["Success连接成功"]
+    Connecting --> Fail["Fail连接失败"]
+    Connecting --> NoNetwork["NoNetwork无网络"]
+    
+    Success --> SyncMsg["SyncMsg同步消息中"]
+    SyncMsg --> SyncCompleted["SyncCompleted同步完成"]
+    
+    Success -.-> Fail
+    SyncMsg -.-> Fail
+    SyncCompleted -.-> Fail
+    
+    Fail --> Connecting
+    NoNetwork --> Connecting
+    
+    SyncCompleted --> Kicked["Kicked被踢出"]
+    Kicked --> End(("结束"))
+                </div>
+                
+                <div class="flow-description">
+                    <h4>连接状态说明</h4>
+                    <ul>
+                        <li><strong>connecting</strong> - 连接中，显示"连接中..."</li>
+                        <li><strong>success</strong> - 连接成功</li>
+                        <li><strong>syncMsg</strong> - 同步消息中，显示"同步消息中..."</li>
+                        <li><strong>syncCompleted</strong> - 同步完成，隐藏状态</li>
+                        <li><strong>fail</strong> - 连接失败</li>
+                        <li><strong>noNetwork</strong> - 无网络</li>
+                        <li><strong>kicked</strong> - 被踢出，跳转登录页</li>
+                    </ul>
+                </div>
+                
+                <h3>连接触发时机</h3>
+                <div class="mermaid">
+flowchart TD
+    subgraph Triggers["连接触发时机"]
+        T1["1.应用启动已登录"]
+        T2["2.登录成功"]
+        T3["3.App恢复前台"]
+        T4["4.网络恢复"]
+        T5["5.网络类型切换WiFi↔移动"]
+    end
+    
+    T1 --> Connect["connectionManager.connect"]
+    T2 --> Connect
+    T3 --> Check{"检查连接状态"}
+    T4 --> Check
+    T5 --> Reconnect["断开后重连"]
+    Check -->|断开| Connect
+    Check -->|正常| Keep["保持连接"]
+    Reconnect --> Connect
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-green">🔗</div>
+                    <h2>Socket 连接建立流程</h2>
+                </div>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant App as App
+    participant CM as ConnectionManager
+    participant Socket as _WKSocket
+    participant Server as IM服务器
+    
+    Note over App,Server: 1. 连接前检查
+    App->>CM: connect()
+    CM->>CM: 检查_isConnecting锁
+    CM->>CM: 检查uid/token是否存在
+    CM->>CM: 检查网络是否可用
+    CM->>CM: 检查是否已在连接中
+    
+    Note over App,Server: 2. 获取服务器地址
+    alt 有缓存地址
+        CM->>CM: 使用缓存地址
+    else 无缓存地址
+        CM->>App: getAddr回调获取地址
+        App-->>CM: 返回服务器地址
+        CM->>CM: 缓存服务器地址
+    end
+    
+    Note over App,Server: 3. 建立TCP连接
+    CM->>CM: setStatus(CONNECTING)
+    CM->>Socket: Socket.connect(host, port, timeout: 5s)
+    Socket->>Server: TCP三次握手
+    Server-->>Socket: 连接建立
+    Socket-->>CM: then回调
+    CM->>Socket: setOption(tcpNoDelay)
+    CM->>CM: 创建_WKSocket包装器
+    
+    Note over App,Server: 4. 发送连接包
+    CM->>CM: _sendConnectPacket()
+    CM->>CM: 生成DH公钥
+    CM->>CM: 获取设备ID
+    CM->>Socket: 发送ConnectPacket
+    Socket->>Server: uid/token/deviceID/clientKey
+    
+    Note over App,Server: 5. 等待连接确认
+    Server-->>Socket: ConnackPacket
+    Socket-->>CM: 解析ConnackPacket
+    
+    alt reasonCode == 1 成功
+        CM->>CM: 保存serverKey/salt
+        CM->>CM: setStatus(SUCCESS)
+        CM->>CM: 启动心跳定时器
+        CM->>CM: 启动网络检查定时器
+        CM->>CM: 触发会话同步
+    else reasonCode != 1 失败
+        CM->>CM: setStatus(FAIL)
+        CM->>CM: 触发重连
+    end
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-orange">❌</div>
+                    <h2>Socket 断开连接流程</h2>
+                </div>
+                
+                <h3>1. 客户端主动断开</h3>
+                <div class="mermaid">
+flowchart TD
+    Start(["disconnect(isLogout)"])
+    
+    Start --> A["重置_isConnecting锁"]
+    A --> B["取消重连定时器"]
+    B --> C["标记_isIntentionalClose=true"]
+    C --> D["关闭Socket连接"]
+    D --> E["清理pending请求"]
+    
+    E --> F{"isLogout?"}
+    F -->|是| G["清除uid/token"]
+    G --> H["更新发送中消息为失败"]
+    H --> I["关闭数据库"]
+    I --> J["清理重发队列"]
+    J --> K["清理频道缓存"]
+    K --> L["重置日志状态"]
+    L --> M["_closeAll关闭所有"]
+    
+    F -->|否| N["保留登录状态"]
+    N --> O["等待重连"]
+                </div>
+                
+                <h3>2. 服务器主动断开</h3>
+                <div class="mermaid">
+flowchart TD
+    subgraph ServerClose["服务器断开连接"]
+        S1["收到FIN包"]
+        S2["onDone回调触发"]
+        S3["记录断开原因日志"]
+        S4["关闭Socket"]
+        S5["setStatus(FAIL)"]
+        S6["触发自动重连"]
+    end
+    
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+    
+    subgraph Reasons["可能的断开原因"]
+        R1["心跳超时"]
+        R2["服务器重启"]
+        R3["被其他设备踢下线"]
+        R4["服务器主动断开"]
+    end
+                </div>
+                
+                <h3>3. 网络异常断开</h3>
+                <div class="mermaid">
+flowchart TD
+    subgraph NetworkError["网络异常断开"]
+        N1["Socket onError触发"]
+        N2["记录错误类型和详情"]
+        N3["关闭Socket"]
+        N4["setStatus(FAIL)"]
+        N5["延迟后自动重连"]
+    end
+    
+    N1 --> N2 --> N3 --> N4 --> N5
+                </div>
+                
+                <h3>4. 被踢下线流程</h3>
+                <div class="mermaid">
+flowchart TD
+    Start(["收到DisconnectPacket"])
+    
+    Start --> A["disconnect(isLogout=true)"]
+    A --> B["setStatus(KICKED)"]
+    B --> C["UI监听到KICKED状态"]
+    C --> D["上报被踢事件"]
+    D --> E["CommonHelper.exitLogin()"]
+    E --> F["跳转到登录页"]
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-blue">🔄</div>
+                    <h2>自动重连机制</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    Start(["连接失败/断开"])
+    
+    Start --> A{"网络是否可用?"}
+    A -->|否| B["setStatus(NO_NETWORK)"]
+    B --> C["等待网络恢复"]
+    C --> D["网络恢复事件"]
+    D --> E["重置重连参数"]
+    E --> F["触发重连"]
+    
+    A -->|是| G["setStatus(FAIL)"]
+    G --> H["计算重连延迟指数退避"]
+    H --> I["设置重连定时器"]
+    I --> J["延迟后检查条件"]
+    
+    J --> K{"isLogin?"}
+    K -->|否| L["不重连"]
+    K -->|是| M{"isConnectDisabled?"}
+    M -->|否| N["连接正常,跳过"]
+    M -->|是| O["resumeConnect()"]
+    O --> P["disconnect(false)"]
+    P --> Q["connect()"]
+                </div>
+                
+                <h3>指数退避算法</h3>
+                <div class="mermaid">
+flowchart LR
+    subgraph Backoff["重连间隔计算"]
+        B1["基础间隔: 1500ms"]
+        B2["第1次: 1500ms"]
+        B3["第2次: 3000ms"]
+        B4["第3次: 6000ms"]
+        B5["第4次: 12000ms"]
+        B6["第5次: 24000ms"]
+        B7["第6次+: 30000ms最大值"]
+    end
+    
+    B1 --> B2 --> B3 --> B4 --> B5 --> B6 --> B7
+    
+    subgraph Formula["计算公式"]
+        F1["delay = base × 2^(attempts-1)"]
+        F2["clamp(1500, 30000)"]
+    end
+                </div>
+                
+                <h3>后台重连退避机制</h3>
+                <div class="mermaid">
+flowchart TD
+    subgraph BackgroundReconnect["后台重连限制"]
+        BG1["最大重连次数: 5次"]
+        BG2["冷却时间: 30秒"]
+        BG3["超过限制后等待HeartbeatService"]
+    end
+    
+    Start(["后台检测到断开"])
+    Start --> A{"重连次数 < 5?"}
+    A -->|是| B["_backgroundReconnectAttempts++"]
+    B --> C["记录重连时间"]
+    C --> D["执行重连"]
+    
+    A -->|否| E{"冷却时间已过?"}
+    E -->|是| F["重置计数器"]
+    F --> B
+    E -->|否| G["等待HeartbeatService触发"]
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-purple">💓</div>
+                    <h2>心跳保活机制</h2>
+                </div>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant CM as ConnectionManager
+    participant Timer as HeartTimer
+    participant Socket as _WKSocket
+    participant Server as IM服务器
+    
+    Note over CM,Server: 连接成功后启动心跳
+    CM->>CM: _startHeartTimer()
+    CM->>CM: 立即发送首次心跳
+    CM->>Socket: PingPacket
+    Socket->>Server: PING
+    Server-->>Socket: PONG
+    
+    loop 每30秒
+        Timer->>CM: 定时器触发
+        CM->>CM: 检查isConnectionAlive
+        
+        alt 连接正常
+            CM->>CM: 检查网络状态
+            alt 网络可用
+                CM->>Socket: PingPacket
+                Socket->>Server: PING
+                Server-->>Socket: PONG
+                Note right of Server: 服务器超时1分钟
+            else 网络不可用
+                CM->>CM: setStatus(NO_NETWORK)
+            end
+        else 连接不可用
+            CM->>CM: 跳过心跳发送
+        end
+    end
+    
+    Note over CM,Server: 断开时停止心跳
+    CM->>Timer: _stopHeartTimer()
+                </div>
+                
+                <div class="flow-description">
+                    <h4>心跳机制说明</h4>
+                    <ul>
+                        <li><strong>心跳间隔</strong> - 30秒发送一次PING包</li>
+                        <li><strong>服务器超时</strong> - 1分钟未收到心跳则断开连接</li>
+                        <li><strong>首次心跳</strong> - 连接成功后立即发送，避免服务器提前断开</li>
+                        <li><strong>网络检查</strong> - 发送前检查网络状态，无网络时不发送</li>
+                        <li><strong>连接检查</strong> - 发送前检查Socket是否可用</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-pink">📡</div>
+                    <h2>网络状态监听</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    Start(["网络状态变化"])
+    
+    Start --> A["_parseConnectivityResults"]
+    A --> B["去抖动延迟500ms"]
+    B --> C["_handleNetworkChange"]
+    
+    C --> D{"网络类型"}
+    
+    D -->|WiFi| E["currentNetworkType = wifi"]
+    D -->|移动网络| F["currentNetworkType = mobile"]
+    D -->|无网络| G["currentNetworkType = none"]
+    
+    E --> H{"网络类型切换?"}
+    F --> H
+    
+    H -->|是WiFi↔移动| I["断开当前连接"]
+    I --> J["重置重连参数"]
+    J --> K["延迟500ms"]
+    K --> L["重新连接"]
+    
+    H -->|否从无网络恢复| M["重置重连参数"]
+    M --> N["立即连接"]
+    
+    H -->|否网络可用但断开| O["重置重连参数"]
+    O --> P["立即连接"]
+    
+    G --> Q["断开连接"]
+    Q --> R["setStatus(NO_NETWORK)"]
+                </div>
+                
+                <h3>定时网络检查</h3>
+                <div class="mermaid">
+flowchart TD
+    Start(["每3秒检查"])
+    
+    Start --> A{"网络状态"}
+    
+    A -->|无网络| B["setStatus(NO_NETWORK)"]
+    B --> C["断开连接"]
+    C --> D["检查待重发消息"]
+    
+    A -->|有网络| E{"连接是否正常?"}
+    E -->|是| F["检查待重发消息"]
+    
+    E -->|否| G{"正在连接中?"}
+    G -->|是| H["跳过"]
+    
+    G -->|否| I{"前台/后台?"}
+    I -->|前台| J["重置退避计数"]
+    J --> K["立即重连"]
+    
+    I -->|后台| L{"退避限制内?"}
+    L -->|是| M["增加重连计数"]
+    M --> N["执行重连"]
+    L -->|否| O["等待HeartbeatService"]
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-cyan">🏠</div>
+                    <h2>后台保活机制</h2>
+                </div>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant App as App
+    participant BG as BackgroundTask
+    participant Heart as HeartbeatService
+    participant CM as ConnectionManager
+    participant Server as Server
+    
+    App->>App: 进入后台paused
+    App->>BG: handleAppLifecycleChange(false)
+    BG->>Heart: startHeartbeatService
+    
+    loop 原生定时心跳
+        Heart->>Heart: sendHeartbeat
+        
+        alt 连接正常
+            Heart->>CM: sendPing()
+            CM->>Server: 发送心跳包
+            Server-->>CM: PONG响应
+            Note right of Heart: 保持连接活跃
+        else 连接断开
+            Heart->>CM: resumeConnect()
+            CM->>Server: 重新建立连接
+        end
+    end
+    
+    App->>App: 恢复前台resumed
+    App->>BG: handleAppLifecycleChange(true)
+    BG->>Heart: stopHeartbeatService
+    BG->>CM: 重置后台重连退避
+    BG->>CM: 检查连接状态
+    
+    alt 连接断开
+        BG->>CM: resumeConnect()
+    end
+                </div>
+                
+                <div class="flow-description">
+                    <h4>后台保活说明</h4>
+                    <ul>
+                        <li><strong>原生服务</strong> - Flutter定时器在后台可能被暂停，使用原生HeartbeatService</li>
+                        <li><strong>定时心跳</strong> - 原生服务定期触发Flutter层发送心跳</li>
+                        <li><strong>断线检测</strong> - 心跳失败时触发重连</li>
+                        <li><strong>前台恢复</strong> - 恢复前台时停止原生服务，检查并恢复连接</li>
+                        <li><strong>退避重置</strong> - 前台恢复时重置后台重连退避计数</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-orange">👀</div>
+                    <h2>连接状态监听与UI更新</h2>
+                </div>
+                
+                <div class="mermaid">
+flowchart TD
+    subgraph SDK["WKIM SDK"]
+        CM["ConnectionManager"]
+        Status["setConnectionStatus"]
+        Listeners["_connectionListenerMap"]
+    end
+    
+    subgraph App["应用层监听"]
+        HL["HomeConversationLogic"]
+        CL["ChatLogic"]
+        Widget["ConnectStatusWidget"]
+    end
+    
+    CM --> Status
+    Status --> Listeners
+    Listeners --> HL
+    Listeners --> CL
+    
+    HL --> HUI["会话列表状态栏"]
+    CL --> CUI["聊天页状态栏"]
+    
+    subgraph UILogic["UI显示逻辑"]
+        U1["CONNECTING → 显示连接中..."]
+        U2["SYNC_MSG → 显示同步消息中..."]
+        U3["SUCCESS/SYNC_COMPLETED → 隐藏状态栏"]
+        U4["FAIL → 延迟15秒后显示"]
+        U5["NO_NETWORK → 延迟3秒后显示"]
+        U6["KICKED → 退出登录"]
+    end
+    
+    HUI --> Widget
+    CUI --> Widget
+    Widget --> UILogic
+                </div>
+                
+                <h3>ConnectStatusWidget 显示逻辑</h3>
+                <div class="mermaid">
+flowchart TD
+    Start(["状态变化"])
+    
+    Start --> A{"状态类型"}
+    
+    A -->|SUCCESS/SYNC| B["重置失败时间"]
+    B --> C["隐藏横条"]
+    
+    A -->|CONNECTING| D["隐藏横条静默重连"]
+    
+    A -->|NO_NETWORK| E["延迟3秒"]
+    E --> F{"仍是NO_NETWORK?"}
+    F -->|是| G["显示横条"]
+    F -->|否| H["不显示"]
+    
+    A -->|FAIL| I["记录首次失败时间"]
+    I --> J{"失败超过15秒?"}
+    J -->|是| K["显示横条"]
+    J -->|否| L["设置定时器"]
+    L --> M["等待剩余时间"]
+    M --> N{"仍是FAIL?"}
+    N -->|是| K
+    N -->|否| H
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-purple">📦</div>
+                    <h2>Socket 数据包处理</h2>
+                </div>
+                
+                <h3>数据包类型</h3>
+                <div class="mermaid">
+flowchart LR
+    subgraph SendPackets["发送的数据包"]
+        S1["ConnectPacket 连接包"]
+        S2["PingPacket 心跳包"]
+        S3["SendPacket 发送消息"]
+        S4["RecvAckPacket 接收确认"]
+        S5["RequestPacket 请求包"]
+    end
+    
+    subgraph RecvPackets["接收的数据包"]
+        R1["ConnackPacket 连接确认"]
+        R2["PongPacket 心跳响应"]
+        R3["RecvPacket 接收消息"]
+        R4["SendAckPacket 发送确认"]
+        R5["DisconnectPacket 断开通知"]
+        R6["ResponsePacket 响应包"]
+    end
+                </div>
+                
+                <h3>数据包解析流程</h3>
+                <div class="mermaid">
+flowchart TD
+    Start(["收到Socket数据"])
+    
+    Start --> A["_cutDatas处理粘包/半包"]
+    A --> B{"数据是否完整?"}
+    
+    B -->|否| C["缓存到_cacheData"]
+    C --> D["等待更多数据"]
+    
+    B -->|是| E["提取完整数据包"]
+    E --> F["_decodePacket解码"]
+    
+    F --> G{"数据包类型"}
+    
+    G -->|CONNACK| H["处理连接确认"]
+    H --> H1{"reasonCode==1?"}
+    H1 -->|是| H2["连接成功"]
+    H1 -->|否| H3["连接失败"]
+    
+    G -->|RECV| I["处理接收消息"]
+    I --> I1["加入消息队列"]
+    I1 --> I2["验证消息"]
+    I2 --> I3["保存到数据库"]
+    I3 --> I4["发送RecvAck"]
+    
+    G -->|SENDACK| J["处理发送确认"]
+    J --> J1["通知重发管理器"]
+    J1 --> J2["更新消息状态"]
+    
+    G -->|PONG| K["记录心跳响应"]
+    
+    G -->|DISCONNECT| L["处理踢下线"]
+    L --> L1["disconnect(true)"]
+    L1 --> L2["setStatus(KICKED)"]
+    
+    G -->|RESPONSE| M["处理请求响应"]
+    M --> M1["找到对应Completer"]
+    M1 --> M2["complete响应"]
+                </div>
+            </div>
+        </section>
+        
+        <!-- 文件索引 -->
+        <section id="files" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-blue">📁</div>
+                    <h2>关键文件索引</h2>
+                </div>
+                
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>模块</th>
+                            <th>文件路径</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>入口</td>
+                            <td class="file-path">lib/main.dart</td>
+                            <td>应用入口，初始化各种服务</td>
+                        </tr>
+                        <tr>
+                            <td>App</td>
+                            <td class="file-path">lib/app.dart</td>
+                            <td>App Widget，生命周期管理</td>
+                        </tr>
+                        <tr>
+                            <td>主页</td>
+                            <td class="file-path">lib/module/main_page.dart</td>
+                            <td>路由判断（登录/完善信息/主页）</td>
+                        </tr>
+                        <tr>
+                            <td>Tab页</td>
+                            <td class="file-path">lib/module/main/main_tab_page.dart</td>
+                            <td>底部 Tab 页面</td>
+                        </tr>
+                        <tr>
+                            <td>会话列表</td>
+                            <td class="file-path">lib/module/conversation/home_conversation_page.dart</td>
+                            <td>会话列表 UI</td>
+                        </tr>
+                        <tr>
+                            <td>会话逻辑</td>
+                            <td class="file-path">lib/module/conversation/home_conversation_logic.dart</td>
+                            <td>会话列表逻辑</td>
+                        </tr>
+                        <tr>
+                            <td>会话基类</td>
+                            <td class="file-path">lib/module/conversation/conversation_logic.dart</td>
+                            <td>会话数据加载/监听</td>
+                        </tr>
+                        <tr>
+                            <td>聊天页</td>
+                            <td class="file-path">lib/module/chat/chat_page.dart</td>
+                            <td>聊天页面 UI</td>
+                        </tr>
+                        <tr>
+                            <td>聊天逻辑</td>
+                            <td class="file-path">lib/module/chat/chat_logic.dart</td>
+                            <td>聊天页核心逻辑</td>
+                        </tr>
+                        <tr>
+                            <td>消息控制器</td>
+                            <td class="file-path">lib/module/chat/controller/chat_msg_controller.dart</td>
+                            <td>消息加载控制</td>
+                        </tr>
+                        <tr>
+                            <td>IM 工具</td>
+                            <td class="file-path">lib/utils/im/im_utils.dart</td>
+                            <td>IM 初始化/监听器注册</td>
+                        </tr>
+                        <tr>
+                            <td>后台任务</td>
+                            <td class="file-path">lib/utils/im/background_task.dart</td>
+                            <td>后台心跳/推送处理</td>
+                        </tr>
+                        <tr>
+                            <td>缓存</td>
+                            <td class="file-path">lib/cache/cache.dart</td>
+                            <td>本地缓存封装</td>
+                        </tr>
+                        <tr>
+                            <td>缓存助手</td>
+                            <td class="file-path">lib/cache/cache_helper.dart</td>
+                            <td>缓存便捷方法</td>
+                        </tr>
+                        <tr>
+                            <td>Tab 未读</td>
+                            <td class="file-path">lib/bloc/navigation/navi_count_bloc.dart</td>
+                            <td>底部 Tab 未读数管理</td>
+                        </tr>
+                        <tr>
+                            <td>版本升级工具</td>
+                            <td class="file-path">lib/module/appupgrade/app_upgrade_utils.dart</td>
+                            <td>版本检查/比较/安装工具</td>
+                        </tr>
+                        <tr>
+                            <td>版本升级逻辑</td>
+                            <td class="file-path">lib/module/appupgrade/app_upgrade_logic.dart</td>
+                            <td>版本更新下载/安装逻辑</td>
+                        </tr>
+                        <tr>
+                            <td>强制更新页</td>
+                            <td class="file-path">lib/module/appupgrade/app_upgrade_page.dart</td>
+                            <td>强制更新全屏页面</td>
+                        </tr>
+                        <tr>
+                            <td>更新对话框</td>
+                            <td class="file-path">lib/module/appupgrade/app_upgrade_dialog.dart</td>
+                            <td>非强制更新弹窗</td>
+                        </tr>
+                        <tr>
+                            <td>版本模型</td>
+                            <td class="file-path">lib/model/app_version.dart</td>
+                            <td>AppVersion 数据模型</td>
+                        </tr>
+                        <tr>
+                            <td>联系人首页</td>
+                            <td class="file-path">lib/module/contact/home_contact_page.dart</td>
+                            <td>联系人Tab首页UI</td>
+                        </tr>
+                        <tr>
+                            <td>联系人列表</td>
+                            <td class="file-path">lib/module/contact/contact_page.dart</td>
+                            <td>联系人列表UI组件</td>
+                        </tr>
+                        <tr>
+                            <td>联系人逻辑</td>
+                            <td class="file-path">lib/module/contact/contact_logic.dart</td>
+                            <td>联系人数据加载/分组/监听</td>
+                        </tr>
+                        <tr>
+                            <td>好友申请</td>
+                            <td class="file-path">lib/module/contact/apply/friend_apply_list_logic.dart</td>
+                            <td>好友申请列表逻辑</td>
+                        </tr>
+                        <tr>
+                            <td>我的群组</td>
+                            <td class="file-path">lib/module/contact/groups/my_groups_logic.dart</td>
+                            <td>保存的群组列表逻辑</td>
+                        </tr>
+                        <tr>
+                            <td>我的首页</td>
+                            <td class="file-path">lib/module/my/my_page.dart</td>
+                            <td>我的Tab首页UI</td>
+                        </tr>
+                        <tr>
+                            <td>个人资料逻辑</td>
+                            <td class="file-path">lib/module/user/mine/my_info_logic.dart</td>
+                            <td>个人资料修改逻辑</td>
+                        </tr>
+                        <tr>
+                            <td>安全与隐私</td>
+                            <td class="file-path">lib/module/my/securityAndPrivacy/security_privacy_page.dart</td>
+                            <td>安全与隐私设置页</td>
+                        </tr>
+                        <tr>
+                            <td>通用设置</td>
+                            <td class="file-path">lib/module/my/commonSetting/common_setting_page.dart</td>
+                            <td>通用设置页（含退出登录）</td>
+                        </tr>
+                        <tr>
+                            <td>连接管理器</td>
+                            <td class="file-path">third/wukongimfluttersdk/lib/manager/connect_manager.dart</td>
+                            <td>Socket连接/断开/重连/心跳管理</td>
+                        </tr>
+                        <tr>
+                            <td>连接状态组件</td>
+                            <td class="file-path">lib/widget/connect_status_widget.dart</td>
+                            <td>连接状态横条UI组件</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-purple">🔗</div>
+                    <h2>核心类关系图</h2>
+                </div>
+                
+                <div class="mermaid">
+classDiagram
+    class ListController {
+        +list
+        +loadData()
+        +refreshData()
+    }
+    
+    class ConversationLogic {
+        +loadData()
+        +initListener()
+        +updatePin()
+        +updateReadStatus()
+        +deleteMsg()
+    }
+    
+    class HomeConversationLogic {
+        +onReady()
+        +initListener()
+    }
+    
+    class HomeConversationPage {
+        +logic
+        +build()
+    }
+    
+    ListController <|-- ConversationLogic
+    ConversationLogic <|-- HomeConversationLogic
+    HomeConversationLogic --o HomeConversationPage
+    
+    class GetxController {
+        +onInit()
+        +onReady()
+        +onClose()
+    }
+    
+    class ChatMsgController {
+        +messages
+        +startRefresh()
+        +loadHeaderData()
+        +loadFooterData()
+        +applyContainerState()
+    }
+    
+    class ChatLogicClass {
+        +channel
+        +initMessageListener()
+        +initChannel()
+        +initSync()
+        +sendTextMessage()
+    }
+    
+    class ChatPageClass {
+        +logic
+        +build()
+    }
+    
+    GetxController <|-- ChatMsgController
+    ChatMsgController <|-- ChatLogicClass
+    ChatLogicClass --o ChatPageClass
+    
+    class ChatSendUtils {
+        +sendTextMessage()
+        +sendImageMessage()
+        +sendVideoMessage()
+    }
+    
+    class ChatScrollController {
+        +scrollToBottom()
+        +scrollToIndex()
+    }
+    
+    class ChatUnreadManager {
+        +update()
+        +clearUnread()
+    }
+    
+    class ConversationMessageManager {
+        +initializeConversation()
+        +loadMore()
+        +addNewMessage()
+    }
+    
+    ChatLogicClass --> ChatSendUtils
+    ChatLogicClass --> ChatScrollController
+    ChatLogicClass --> ChatUnreadManager
+    ChatLogicClass --> ConversationMessageManager
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        // 等待 mermaid 库加载完成
+        function waitForMermaid(callback, maxRetries = 50) {
+            if (typeof mermaid !== 'undefined') {
+                callback();
+            } else if (maxRetries > 0) {
+                setTimeout(() => waitForMermaid(callback, maxRetries - 1), 100);
+            } else {
+                console.error('Mermaid library failed to load');
+            }
+        }
+        
+        function initMermaid() {
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: 'dark',
+                securityLevel: 'loose',
+                fontFamily: '"Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                themeVariables: {
+                    fontFamily: '"Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    fontSize: '14px',
+                    primaryColor: '#3a2a5c',
+                    primaryTextColor: '#e6edf3',
+                    primaryBorderColor: '#a371f7',
+                    lineColor: '#58a6ff',
+                    secondaryColor: '#1a4a3a',
+                    tertiaryColor: '#1a3a5c',
+                    background: '#161b22',
+                    mainBkg: '#21262d',
+                    nodeBorder: '#30363d',
+                    clusterBkg: '#21262d',
+                    clusterBorder: '#30363d',
+                    titleColor: '#e6edf3',
+                    edgeLabelBackground: '#161b22',
+                    nodeTextColor: '#e6edf3'
+                },
+                flowchart: {
+                    useMaxWidth: false,
+                    htmlLabels: true,
+                    curve: 'basis',
+                    nodeSpacing: 50,
+                    rankSpacing: 80,
+                    padding: 20
+                },
+                sequence: {
+                    useMaxWidth: true,
+                    actorMargin: 50,
+                    messageMargin: 40
+                }
+            });
+            
+            // 初始化完成后显示默认 section
+            const valid = new Set(['overview','startup','upgrade','conversation','chat','message','contact','mine','connection','files']);
+            const hash = location.hash ? location.hash.replace('#','') : '';
+            const saved = localStorage.getItem('docActiveSection') || '';
+            const initial = valid.has(hash) ? hash : (valid.has(saved) ? saved : 'overview');
+            showSection(null, initial);
+        }
+        
+        // 缩放状态存储
+        const zoomLevels = {};
+        
+        function zoomChart(chartId, delta) {
+            const chart = document.getElementById(chartId);
+            if (!chart) return;
+            
+            if (!zoomLevels[chartId]) zoomLevels[chartId] = 1;
+            
+            zoomLevels[chartId] = Math.max(0.5, Math.min(2, zoomLevels[chartId] + delta));
+            chart.style.transform = `scale(${zoomLevels[chartId]})`;
+            
+            const levelEl = document.getElementById(chartId + '-level');
+            if (levelEl) {
+                levelEl.textContent = Math.round(zoomLevels[chartId] * 100) + '%';
+            }
+        }
+        
+        function resetZoom(chartId) {
+            const chart = document.getElementById(chartId);
+            if (!chart) return;
+            
+            zoomLevels[chartId] = 1;
+            chart.style.transform = 'scale(1)';
+            
+            const levelEl = document.getElementById(chartId + '-level');
+            if (levelEl) {
+                levelEl.textContent = '100%';
+            }
+        }
+        
+        function renderMermaidIn(sectionId) {
+            if (typeof mermaid === 'undefined') return;
+            const section = document.getElementById(sectionId);
+            if (!section) return;
+            const nodes = Array.from(section.querySelectorAll('.mermaid, .mermaid-large')).filter(el => el.getAttribute('data-processed') !== 'true');
+            if (nodes.length === 0) return;
+            try {
+                mermaid.run({ nodes });
+            } catch (e) {
+                mermaid.init(undefined, nodes);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            waitForMermaid(initMermaid);
+        });
+        
+        function showSection(evt, sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(sectionId).classList.add('active');
+            
+            const tabEl = (evt && evt.target) || document.querySelector(`.nav-tab[data-section="${sectionId}"]`);
+            if (tabEl) tabEl.classList.add('active');
+            
+            renderMermaidIn(sectionId);
+            try {
+                if (sectionId) {
+                    localStorage.setItem('docActiveSection', sectionId);
+                    if (!evt) {
+                        history.replaceState(null, '', '#' + sectionId);
+                    } else {
+                        location.hash = '#' + sectionId;
+                    }
+                }
+            } catch (_) {}
+        }
+    </script>
+</body>
+</html>
