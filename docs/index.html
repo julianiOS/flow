@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mermaid 示例</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%93%84%3C/text%3E%3C/svg%3E">
 </head>
 <body>
   <h1>Mermaid 示例页面</h1>
@@ -18,43 +19,34 @@
       D --> E
   </div>
 
-  <script>
-    (function () {
-      function loadScript(src) {
-        return new Promise(function (resolve, reject) {
-          var s = document.createElement('script');
-          s.src = src;
-          s.onload = resolve;
-          s.onerror = reject;
-          document.head.appendChild(s);
-        });
-      }
-      async function ensureMermaid() {
-        var urls = [
-          'vendor/mermaid.min.js',
-          'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js',
-          'https://unpkg.com/mermaid@10/dist/mermaid.min.js',
-          'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js'
+  <script type="module">
+    (async () => {
+      async function loadMermaid() {
+        try {
+          const mod = await import('./vendor/mermaid.esm.min.mjs');
+          return mod.default || mod.mermaid || mod;
+        } catch (_) {}
+        const urls = [
+          'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs',
+          'https://unpkg.com/mermaid@10/dist/mermaid.esm.min.mjs',
+          'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.esm.min.mjs'
         ];
-        for (var i = 0; i < urls.length; i++) {
+        for (const url of urls) {
           try {
-            await loadScript(urls[i]);
-            if (window.mermaid) return window.mermaid;
-          } catch (e) {}
+            const mod = await import(url);
+            return mod.default || mod.mermaid || mod;
+          } catch (_) {}
         }
         throw new Error('Mermaid 加载失败');
       }
-      document.addEventListener('DOMContentLoaded', function () {
-        ensureMermaid().then(function (mer) {
-          mer.initialize({ startOnLoad: false, theme: 'default' });
-          var nodes = Array.prototype.slice.call(document.querySelectorAll('.mermaid'));
-          try {
-            mer.run({ nodes: nodes });
-          } catch (e) {
-            mer.init(undefined, nodes);
-          }
-        });
-      });
+      const mer = await loadMermaid();
+      mer.initialize({ startOnLoad: false, theme: 'default' });
+      const nodes = Array.from(document.querySelectorAll('.mermaid'));
+      try {
+        mer.run({ nodes });
+      } catch (e) {
+        mer.init(undefined, nodes);
+      }
     })();
   </script>
 </body>
