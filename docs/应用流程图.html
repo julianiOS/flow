@@ -244,9 +244,16 @@
         .mermaid {
             background: var(--bg-tertiary);
             border-radius: 12px;
-            padding: 20px;
+            padding: 12px;
             overflow-x: auto;
             margin: 20px 0;
+        }
+        
+        .mermaid svg {
+            transform: scale(1.0);
+            transform-origin: top left;
+            max-width: 100%;
+            height: auto;
         }
         
         .mermaid-large-wrapper {
@@ -299,17 +306,19 @@
         .mermaid-large {
             background: var(--bg-tertiary);
             border-radius: 12px;
-            padding: 30px;
+            padding: 24px;
             overflow: auto;
             min-height: 500px;
-            max-height: 800px;
+            max-height: 700px;
             transform-origin: top left;
             transition: transform 0.2s ease;
         }
         
         .mermaid-large svg {
-            min-width: 1000px;
+            min-width: 1100px;
             display: block;
+            transform: scale(1.0);
+            transform-origin: top left;
         }
         
         .architecture-grid {
@@ -628,7 +637,7 @@ flowchart LR
                 </div>
                 
                 <div class="mermaid">
-%%{init: {'flowchart': {'nodeSpacing': 25, 'rankSpacing': 35, 'curve': 'basis'}}}%%
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'curve': 'linear'}}}%%
 flowchart TD
     Start(["main函数入口"]) --> A["1. WidgetsFlutterBinding.ensureInitialized"] --> B["2. FlutterNativeSplash.preserve"] --> C["3. GlobalErrorHandler.init"] --> D["4. await initApp()"]
     
@@ -697,7 +706,7 @@ flowchart TD
                 </div>
                 
                 <div class="mermaid">
-%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'curve': 'basis'}}}%%
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'curve': 'linear'}}}%%
 flowchart TD
     Start(["MainPage.build"]) --> A{"CommonHelper.isLogin?"}
     A -->|否| B["return LoginPage"]
@@ -725,7 +734,7 @@ flowchart TD
                         <button class="zoom-btn" onclick="resetZoom('app-widget-init-chart')" title="重置">↺</button>
                     </div>
                     <div class="mermaid-large" id="app-widget-init-chart">
-%%{init: {'flowchart': {'nodeSpacing': 15, 'rankSpacing': 25, 'curve': 'basis'}}}%%
+%%{init: {'flowchart': {'nodeSpacing': 18, 'rankSpacing': 26, 'curve': 'linear'}}}%%
 flowchart LR
     subgraph Init["🚀 initState"]
         direction TB
@@ -3305,10 +3314,10 @@ classDiagram
                 flowchart: {
                     useMaxWidth: false,
                     htmlLabels: true,
-                    curve: 'basis',
-                    nodeSpacing: 50,
-                    rankSpacing: 80,
-                    padding: 20
+                    curve: 'linear',
+                    nodeSpacing: 28,
+                    rankSpacing: 40,
+                    diagramPadding: 14
                 },
                 sequence: {
                     useMaxWidth: true,
