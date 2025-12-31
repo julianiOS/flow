@@ -657,8 +657,9 @@ flowchart TD
     
     subgraph CommonInit["CommonHelper.init详细"]
         E1{"isLogin?"} -->|是| E2["await IMUtils.initIM()"]
-        E1 -->|否| E3["完成"]
-        E2 --> E3
+        E1 -->|否| E4["请求配置接口(AppConfig)"]
+        E2 --> E4
+        E4 --> E3["完成"]
     end
     
     D2 -.-> E1
